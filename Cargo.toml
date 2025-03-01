@@ -1,0 +1,17 @@
+[package]
+name = "bits"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+default = []
+nightly = []
+
+[toolchain]
+channel = "nightly"
+
+[dependencies]
+hex_lit = "0.1.1"
+
+[dev-dependencies]
+bitcoin = { version = "0.32.5", features = ["base64"] }
