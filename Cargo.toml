@@ -1,16 +1,19 @@
 [package]
 name = "bits"
-version = "0.1.0"
-edition = "2024"
+version = "0.2.0"
+authors = ["Artimonist <artimonist@gmail.com>"]
+description = "An easy-to-use bits iterator and chunk tool."
+homepage = "https://artimonist.org/"
+repository = "https://github.com/artimonist/bits/"
 
-[features]
-default = []
-# nightly = []
-
-# [toolchain]
-# channel = "stable"
+license = "MIT"
+keywords = ["bitcoin", "wallet", "mnemonic", "crypto", "btc", "art"]
+categories = ["cryptography"]
+rust-version = "1.84"
+edition = "2021"
+crate-type = ["lib"]
 
 [dependencies]
 
 [dev-dependencies]
-bitcoin = { version = "0.32.5", features = ["base64"] }
+hex = "0.4.3"

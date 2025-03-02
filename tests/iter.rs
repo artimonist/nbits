@@ -1,14 +1,14 @@
 #![cfg(test)]
 
-use bitcoin::hex::FromHex;
+use bits::BitConjoin;
 use bits::*;
+use hex::FromHex;
 
 #[test]
 fn test_bit_iter() {
     for (i, &data) in DATA_LIST.iter().enumerate() {
         assert_eq!(data.bit_iter().collect::<Vec<_>>(), BITS_LIST[i]);
         assert_eq!(BITS_LIST[i].iter().to_bits(), *data);
-        assert_eq!(Vec::bit_from(BITS_LIST[i].iter().map(|&v| v)), *data);
     }
 }
 
@@ -65,9 +65,10 @@ const BITS_LIST: &[&[bool]] = &[
 #[test]
 fn test_bit_chunks() {
     for (i, &entropy) in ENTROPY_LIST.iter().enumerate() {
-        let vs = Vec::from_hex(entropy).expect("entropy");
-        let indices: Vec<_> = vs.bit_chunks_32(11).collect();
+        let data = Vec::from_hex(entropy).expect("entropy");
+        let indices: Vec<_> = data.bit_chunks_16(11).collect();
         assert_eq!(indices, INDICES_LIST[i]);
+        assert_eq!(indices.into_iter().bit_conjoin(11)[..data.len()], data);
     }
 }
 
@@ -79,7 +80,7 @@ const ENTROPY_LIST: &[&str] = &[
     "cf9b4e9b73f62f92d0b802931c01fae73eeeab725bd214c5",
     "5174bb1dddfc6e2fef4e47df6fcc046a48d195b9",
 ];
-const INDICES_LIST: &[&[u32]] = &[
+const INDICES_LIST: &[&[u16]] = &[
     &[
         // 00001101010 10100000000 11101011100 01010001100 01000110000 01101110111 11111011111 10010010110
         // 01111010111 10001100010 01011000101 01101000100 11010111110 00110111110 11001000111 10111001111
@@ -111,3 +112,15 @@ const INDICES_LIST: &[&[u32]] = &[
         1787, 1011, 8, 1700, 1128, 1622, 1824, // 0b111_0010_0000
     ],
 ];
+
+#[test]
+#[should_panic]
+fn test_chunks_overflow() {
+    let _ = [8_u8; 8].bit_chunks_8(11).collect::<Vec<_>>();
+}
+
+#[test]
+#[should_panic]
+fn test_conjoin_overflow() {
+    let _ = [222_u32].into_iter().bit_conjoin(0);
+}
