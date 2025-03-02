@@ -1,10 +1,9 @@
-#![feature(portable_simd)]
-//!
+//! BitOperation
 //!
 //!
 //!
 //!
 
-mod operation;
+mod iter;
 
-pub use operation::*;
+pub use iter::*;
