@@ -66,7 +66,7 @@ const BITS_LIST: &[&[bool]] = &[
 fn test_bit_chunks() {
     for (i, &entropy) in ENTROPY_LIST.iter().enumerate() {
         let data = Vec::from_hex(entropy).expect("entropy");
-        let indices: Vec<_> = data.bit_chunks_16(11).collect();
+        let indices: Vec<u16> = data.bit_chunks(11).collect();
         assert_eq!(indices, INDICES_LIST[i]);
         assert_eq!(indices.into_iter().bit_conjoin(11)[..data.len()], data);
     }
@@ -116,7 +116,7 @@ const INDICES_LIST: &[&[u16]] = &[
 #[test]
 #[should_panic]
 fn test_chunks_overflow() {
-    let _ = [8_u8; 8].bit_chunks_8(11).collect::<Vec<_>>();
+    let _: Vec<u8> = [8_u8; 8].bit_chunks(11).collect::<Vec<_>>();
 }
 
 #[test]

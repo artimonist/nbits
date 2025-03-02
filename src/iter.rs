@@ -7,11 +7,11 @@
 
 pub trait BitIterator {
     /// iterator of bit values
-    fn bit_iter(&self) -> impl Iterator<Item = bool>;
+    fn bit_iter(self) -> impl Iterator<Item = bool>;
 }
 
-impl BitIterator for [u8] {
-    fn bit_iter(&self) -> impl Iterator<Item = bool> {
+impl BitIterator for &[u8] {
+    fn bit_iter(self) -> impl Iterator<Item = bool> {
         self.iter()
             .flat_map(|&v| (0_u8..8).rev().map(move |n| (v & (1 << n)) != 0))
     }
@@ -66,24 +66,22 @@ impl ByteWindow for [u8] {
 }
 
 pub trait BitChunks {
-    fn bit_chunks_8(&self, n: usize) -> impl Iterator<Item = u8>;
-    fn bit_chunks_16(&self, n: usize) -> impl Iterator<Item = u16>;
-    fn bit_chunks_32(&self, n: usize) -> impl Iterator<Item = u32>;
+    fn bit_chunks<T>(self, n: usize) -> impl Iterator<Item = T>
+    where
+        T: TryFrom<u64> + Default;
 }
 
-impl BitChunks for [u8] {
-    #[inline]
-    fn bit_chunks_8(&self, n: usize) -> impl Iterator<Item = u8> {
-        assert!(0 < n && n <= 8, "[bits] Chunk size overflow: 0 < n <= 8");
-        self.bit_chunks_32(n).map(|v| v as u8)
-    }
-    #[inline]
-    fn bit_chunks_16(&self, n: usize) -> impl Iterator<Item = u16> {
-        assert!(0 < n && n <= 16, "[bits] Chunk size overflow: 0 < n <= 16");
-        self.bit_chunks_32(n).map(|v| v as u16)
-    }
-    fn bit_chunks_32(&self, n: usize) -> impl Iterator<Item = u32> {
-        assert!(0 < n && n <= 32, "[bits] Chunk size overflow: 0 < n <= 32");
+impl BitChunks for &[u8] {
+    fn bit_chunks<T>(self, n: usize) -> impl Iterator<Item = T>
+    where
+        T: TryFrom<u64> + Default,
+    {
+        let value_type = std::any::type_name::<T>();
+        let value_bits = std::mem::size_of::<T>() * 8;
+        assert!(
+            0 < n && n <= value_bits,
+            "[bits] Chunk size {n} overflow of: 1..=size_of({value_type})",
+        );
         // enumerate bytes window of 64 bits width, split item values from those windows
         const WINDOW_BYTES: usize = std::mem::size_of::<u64>();
         let bit_mask = (0..n).fold(0, |acc, v| acc | (1 << v));
@@ -99,7 +97,7 @@ impl BitChunks for [u8] {
                 while (bit_pos + n) <= window_end {
                     bit_pos += n;
                     let value = ((window_value >> (window_end - bit_pos)) & bit_mask);
-                    vs.push(value as u32);
+                    vs.push(value.try_into().unwrap_or_default());
                 }
                 vs
             })
@@ -110,32 +108,14 @@ pub trait BitConjoin<T> {
     fn bit_conjoin(self, n: usize) -> Vec<u8>;
 }
 
-impl<U: Iterator<Item = u8>> BitConjoin<u8> for U {
-    #[inline]
-    fn bit_conjoin(self, n: usize) -> Vec<u8> {
-        self.map(|v| v as u64).bit_conjoin(n)
-    }
-}
-
-impl<U: Iterator<Item = u16>> BitConjoin<u16> for U {
-    #[inline]
-    fn bit_conjoin(self, n: usize) -> Vec<u8> {
-        self.map(|v| v as u64).bit_conjoin(n)
-    }
-}
-
-impl<U: Iterator<Item = u32>> BitConjoin<u32> for U {
-    #[inline]
-    fn bit_conjoin(self, n: usize) -> Vec<u8> {
-        self.map(|v| v as u64).bit_conjoin(n)
-    }
-}
-
-impl<U: Iterator<Item = u64>> BitConjoin<u64> for U {
+impl<T, U: Iterator<Item = T>> BitConjoin<U> for U
+where
+    T: Into<u64>,
+{
     fn bit_conjoin(mut self, n: usize) -> Vec<u8> {
         assert!(
-            0 < n && n <= 32,
-            "[bits] Conjoin size overflow: 0 < n <= 32"
+            matches!(n, 1..=32),
+            "[bits] Conjoin size {n} overflow of: 1..=32"
         );
         const WINDOW_BITS: usize = 64;
         let bit_mask = (0..n).fold(0, |acc, v| acc | (1 << v));
@@ -143,8 +123,7 @@ impl<U: Iterator<Item = u64>> BitConjoin<u64> for U {
         let mut vs: Vec<u8> = vec![];
         let mut remainder: u64 = 0;
         let mut remainder_len: usize = 0;
-        for mut v in self {
-            println!("remainder: {remainder_len}, {remainder:b}");
+        for mut v in self.map(|v| v.into()) {
             v &= bit_mask;
             v <<= WINDOW_BITS - (n + remainder_len);
             if remainder_len != 0 {
@@ -166,27 +145,22 @@ impl<U: Iterator<Item = u64>> BitConjoin<u64> for U {
     }
 }
 
-#[cfg(test)]
-mod bit_operation_test {
-    use super::*;
+impl<'a, T, U: Iterator<Item = &'a T>> BitConjoin<&U> for U
+where
+    T: 'a + Into<u64> + Copy,
+{
+    #[inline]
+    fn bit_conjoin(self, n: usize) -> Vec<u8> {
+        self.map(|&v| v).bit_conjoin(n)
+    }
+}
 
-    #[test]
-    fn test_to_bits() {
-        const MATRIX: &[[u8; 8]] = &[
-            [1, 1, 1, 1, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 1, 1, 1],
-            [1, 1, 0, 0, 0, 0, 1, 1],
-            [0, 0, 1, 1, 1, 1, 0, 0],
-        ];
-        const INDICES: &[u8] = &[0b1111_0000, 0b0000_1111, 0b1100_0011, 0b0011_1100];
-        let vs = (0..MATRIX.len()).flat_map(|row| (0..8).map(move |col| MATRIX[row][col] == 1));
-        assert_eq!(vs.to_bits(), INDICES);
-
-        let bits = [true, true, true, false, false, true].iter().to_bits();
-        assert_eq!(bits, [0b1110_0100]);
-        let bits = [true, true, true, false, false, true, true, true, true]
-            .iter()
-            .to_bits();
-        assert_eq!(bits, [0b1110_0111, 0b1000_0000]);
+impl<T> BitConjoin<T> for &[T]
+where
+    T: Into<u64> + Copy,
+{
+    #[inline]
+    fn bit_conjoin(self, n: usize) -> Vec<u8> {
+        self.iter().map(|&v| v).bit_conjoin(n)
     }
 }
