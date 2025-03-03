@@ -9,7 +9,7 @@ repository = "https://github.com/artimonist/bits/"
 license = "MIT"
 keywords = ["bitcoin", "wallet", "mnemonic", "crypto", "btc", "art"]
 categories = ["cryptography"]
-rust-version = "1.84"
+# rust-version = "1.84"
 edition = "2021"
 crate-type = ["lib"]
 

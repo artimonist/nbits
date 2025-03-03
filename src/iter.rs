@@ -1,10 +1,13 @@
-/*! Bit Operations
- *
- * # Examples
- * [u8] chunks to mnemonic indices by 11 bits.
- * [u8] chunks to base64 indices by 6 bits.
- */
-
+/// Enumerate the bits in the buffer  
+///
+/// # Examples
+/// ```
+/// # use bits::BitIterator;
+/// assert_eq!(
+///     [0b1111_0000_u8].bit_iter().collect::<Vec<bool>>(),
+///     vec![true, true, true, true, false, false, false, false]
+/// );
+/// ```
 pub trait BitIterator {
     /// iterator of bit values
     fn bit_iter(self) -> impl Iterator<Item = bool>;
@@ -17,11 +20,24 @@ impl BitIterator for &[u8] {
     }
 }
 
+/// Converting enumerated bool values to buffer  
+///
+/// # Examples
+/// ```
+/// # use bits::ToBits;
+/// assert_eq!(
+///     vec![true, true, true, true, false, false, false, false].iter().to_bits(),
+///     [0b1111_0000]
+/// );
+/// ```
 pub trait ToBits<T> {
     fn to_bits(self) -> Vec<u8>;
 }
 
-impl<U: Iterator<Item = bool>> ToBits<bool> for U {
+impl<U> ToBits<bool> for U
+where
+    U: Iterator<Item = bool>,
+{
     fn to_bits(self) -> Vec<u8> {
         let mut v = 0_u8;
         self.chain([false; 7])
@@ -40,10 +56,12 @@ impl<U: Iterator<Item = bool>> ToBits<bool> for U {
     }
 }
 
-impl<'a, U: Iterator<Item = &'a bool>> ToBits<&bool> for U {
-    #[inline]
+impl<'a, U> ToBits<&bool> for U
+where
+    U: Iterator<Item = &'a bool>,
+{
     fn to_bits(self) -> Vec<u8> {
-        self.map(|&v| v).to_bits()
+        self.copied().to_bits()
     }
 }
 
@@ -65,14 +83,28 @@ impl ByteWindow for [u8] {
     }
 }
 
+/// Returns the bits in the buffer grouped by n  
+///
+/// # Examples
+/// ```
+/// # use bits::BitChunks;
+/// assert_eq!(
+///     vec![0b1111_1111, 0b1111_1111].bit_chunks(6).collect::<Vec<u8>>(),
+///     vec![0b11_1111, 0b11_1111, 0b11_1100]
+/// );
+/// assert_eq!(
+///     vec![0b1111_1111; 3].bit_chunks(11).collect::<Vec<u16>>(),
+///     vec![0b111_1111_1111, 0b111_1111_1111, 0b110_0000_0000]
+/// );
+/// ```
 pub trait BitChunks {
-    fn bit_chunks<T>(self, n: usize) -> impl Iterator<Item = T>
+    fn bit_chunks<T>(&self, n: usize) -> impl Iterator<Item = T>
     where
         T: TryFrom<u64> + Default;
 }
 
-impl BitChunks for &[u8] {
-    fn bit_chunks<T>(self, n: usize) -> impl Iterator<Item = T>
+impl BitChunks for [u8] {
+    fn bit_chunks<T>(&self, n: usize) -> impl Iterator<Item = T>
     where
         T: TryFrom<u64> + Default,
     {
@@ -93,7 +125,7 @@ impl BitChunks for &[u8] {
             let mut vs = vec![];
             while (bit_pos + n) <= window_end && (bit_pos + n) < self.len() * 8 + n {
                 bit_pos += n;
-                let value = ((window_value >> (window_end - bit_pos)) & bit_mask);
+                let value = (window_value >> (window_end - bit_pos)) & bit_mask;
                 vs.push(value.try_into().unwrap_or_default());
             }
             vs
@@ -128,15 +160,30 @@ impl PartialBits {
     }
 }
 
+/// Conjoin the lowest n bits of each value  
+///
+/// # Examples
+/// ```
+/// # use bits::BitConjoin;
+/// assert_eq!(
+///     vec![0b11_1111_u8, 0b11_1111, 0b11_1111].bit_conjoin(6),
+///     vec![0b1111_1111, 0b1111_1111, 0b1100_0000]
+/// );
+/// assert_eq!(
+///     vec![0b1111_u16, 0b1111, 0b1111].bit_conjoin(6),
+///     vec![0b001111_00, 0b1111_0011, 0b1100_0000]
+/// );
+/// ```
 pub trait BitConjoin<T> {
     fn bit_conjoin(self, n: usize) -> Vec<u8>;
 }
 
-impl<T, U: Iterator<Item = T>> BitConjoin<U> for U
+impl<T, U> BitConjoin<U> for U
 where
     T: Into<u64>,
+    U: Iterator<Item = T>,
 {
-    fn bit_conjoin(mut self, n: usize) -> Vec<u8> {
+    fn bit_conjoin(self, n: usize) -> Vec<u8> {
         assert!(
             matches!(n, 1..=32),
             "[bits] Conjoin size {n} overflow of: 1..=32"
@@ -163,22 +210,21 @@ where
     }
 }
 
-impl<'a, T, U: Iterator<Item = &'a T>> BitConjoin<&U> for U
+impl<'a, T, U> BitConjoin<&U> for U
 where
     T: 'a + Into<u64> + Copy,
+    U: Iterator<Item = &'a T>,
 {
-    #[inline]
     fn bit_conjoin(self, n: usize) -> Vec<u8> {
-        self.map(|&v| v).bit_conjoin(n)
+        self.copied().bit_conjoin(n)
     }
 }
-
 impl<T> BitConjoin<T> for &[T]
 where
     T: Into<u64> + Copy,
 {
     #[inline]
     fn bit_conjoin(self, n: usize) -> Vec<u8> {
-        self.iter().map(|&v| v).bit_conjoin(n)
+        self.iter().copied().bit_conjoin(n)
     }
 }
