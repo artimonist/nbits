@@ -114,7 +114,7 @@ where
             matches!(n, 1..=32),
             "[bits] Conjoin size {n} overflow of: 1..=32"
         );
-        const WINDOW_BITS: usize = 64;
+        const WINDOW_WIDTH: usize = 64;
         let bit_mask = (0..n).fold(0, |acc, v| acc | (1 << v));
 
         let mut vs: Vec<u8> = vec![];
@@ -122,9 +122,9 @@ where
         let mut remainder_len: usize = 0;
         for mut v in self.map(|v| v.into()) {
             v &= bit_mask;
-            v <<= WINDOW_BITS - (n + remainder_len);
+            v <<= WINDOW_WIDTH - (n + remainder_len);
             if remainder_len != 0 {
-                v |= remainder << (WINDOW_BITS - remainder_len);
+                v |= remainder << (WINDOW_WIDTH - remainder_len);
             }
 
             let partial = (n + remainder_len) / 8;
@@ -135,8 +135,14 @@ where
                 remainder = (bytes[partial] >> (8 - remainder_len)) as u64;
             } else {
                 remainder = 0;
-                assert_eq!(bytes[partial], 0);
+                debug_assert_eq!(bytes[partial], 0);
             }
+        }
+        if remainder_len > 0 {
+            let mut v = 0;
+            v |= remainder << (WINDOW_WIDTH - remainder_len);
+            debug_assert!(remainder_len < 8);
+            vs.push(v.to_be_bytes()[0]);
         }
         vs
     }
