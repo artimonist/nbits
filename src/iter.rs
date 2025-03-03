@@ -76,31 +76,28 @@ impl BitChunks for &[u8] {
     where
         T: TryFrom<u64> + Default,
     {
-        let value_type = std::any::type_name::<T>();
-        let valid_bits = (std::mem::size_of::<T>() * 8).min(32);
+        let valid_size = (std::mem::size_of::<T>() * 8).min(32);
         assert!(
-            0 < n && n <= valid_bits,
-            "[bits] Chunk size {n} overflow of: 1..={valid_bits}",
+            0 < n && n <= valid_size,
+            "[bits] Chunk size {n} overflow of: 1..={valid_size}",
         );
         // enumerate bytes window of 64 bits width, split item values from those windows
         const WINDOW_BYTES: usize = std::mem::size_of::<u64>();
-        let bit_mask = (0..n).fold(0, |acc, v| acc | (1 << v));
+        let bit_mask: u64 = (0..n).fold(0, |acc, v| acc | (1 << v));
         let mut bit_pos = 0;
-        (0..self.len())
-            .take_while(move |i| i * 8 + WINDOW_BYTES * 8 < self.len() * 8 + n)
-            .flat_map(move |i| {
-                let window_value = self.byte_window_64(i);
-                let window_end = i * 8 + WINDOW_BYTES * 8; // current bit window end
-                assert!((i * 8..window_end).contains(&bit_pos)); // current bit window start
+        (0..self.len()).flat_map(move |i| {
+            let window_value = self.byte_window_64(i);
+            let window_end = i * 8 + WINDOW_BYTES * 8; // current bit window end
+            debug_assert!((i * 8..window_end).contains(&bit_pos)); // current bit window start
 
-                let mut vs = vec![];
-                while (bit_pos + n) <= window_end {
-                    bit_pos += n;
-                    let value = ((window_value >> (window_end - bit_pos)) & bit_mask);
-                    vs.push(value.try_into().unwrap_or_default());
-                }
-                vs
-            })
+            let mut vs = vec![];
+            while (bit_pos + n) <= window_end && (bit_pos + n) < self.len() * 8 + n {
+                bit_pos += n;
+                let value = ((window_value >> (window_end - bit_pos)) & bit_mask);
+                vs.push(value.try_into().unwrap_or_default());
+            }
+            vs
+        })
     }
 }
 

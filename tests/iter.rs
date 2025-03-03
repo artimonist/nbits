@@ -124,3 +124,21 @@ fn test_chunks_overflow() {
 fn test_conjoin_overflow() {
     let _ = [222_u32].into_iter().bit_conjoin(0);
 }
+
+#[test]
+fn test_doc() {
+    assert_eq!(
+        vec![0b1111_1111].bit_chunks(6).collect::<Vec<u8>>(),
+        vec![0b11_1111, 0b11_0000]
+    );
+    assert_eq!(
+        vec![0b1111_1111, 0b1111_1111]
+            .bit_chunks(6)
+            .collect::<Vec<u8>>(),
+        vec![0b11_1111, 0b11_1111, 0b11_1100]
+    );
+    assert_eq!(
+        vec![0b11_1111_u8, 0b11_1111, 0b11_1111].bit_conjoin(6),
+        vec![0b1111_1111, 0b1111_1111, 0b1100_0000]
+    );
+}
