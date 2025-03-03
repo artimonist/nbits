@@ -77,10 +77,10 @@ impl BitChunks for &[u8] {
         T: TryFrom<u64> + Default,
     {
         let value_type = std::any::type_name::<T>();
-        let value_bits = std::mem::size_of::<T>() * 8;
+        let valid_bits = (std::mem::size_of::<T>() * 8).min(32);
         assert!(
-            0 < n && n <= value_bits,
-            "[bits] Chunk size {n} overflow of: 1..=size_of({value_type})",
+            0 < n && n <= valid_bits,
+            "[bits] Chunk size {n} overflow of: 1..={valid_bits}",
         );
         // enumerate bytes window of 64 bits width, split item values from those windows
         const WINDOW_BYTES: usize = std::mem::size_of::<u64>();
