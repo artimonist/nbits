@@ -101,6 +101,33 @@ impl BitChunks for &[u8] {
     }
 }
 
+#[derive(Debug)]
+struct PartialBits {
+    data: u8,
+    len: usize,
+}
+
+impl PartialBits {
+    pub fn new(data: u8, len: usize) -> Self {
+        PartialBits { data, len }
+    }
+    pub fn len(&self) -> usize {
+        self.len
+    }
+    pub fn insert_prefix(&self, value: &mut u64) {
+        if self.len > 0 {
+            *value >>= self.len;
+            *value |= (self.data as u64) << (64 - 8); // u64 left byte
+        }
+    }
+    pub fn value(&self) -> Vec<u8> {
+        match self.len > 0 {
+            true => vec![self.data],
+            false => vec![],
+        }
+    }
+}
+
 pub trait BitConjoin<T> {
     fn bit_conjoin(self, n: usize) -> Vec<u8>;
 }
@@ -117,33 +144,21 @@ where
         const WINDOW_WIDTH: usize = 64;
         let bit_mask = (0..n).fold(0, |acc, v| acc | (1 << v));
 
-        let mut vs: Vec<u8> = vec![];
-        let mut remainder: u64 = 0;
-        let mut remainder_len: usize = 0;
-        for mut v in self.map(|v| v.into()) {
-            v &= bit_mask;
-            v <<= WINDOW_WIDTH - (n + remainder_len);
-            if remainder_len != 0 {
-                v |= remainder << (WINDOW_WIDTH - remainder_len);
-            }
+        let mut rem = PartialBits::new(0, 0);
+        let mut vs: Vec<u8> = self
+            .map(|v| v.into())
+            .flat_map(|mut value| {
+                value &= bit_mask;
+                value <<= WINDOW_WIDTH - n;
+                rem.insert_prefix(&mut value);
 
-            let partial = (n + remainder_len) / 8;
-            let bytes = v.to_be_bytes()[..=partial].to_vec();
-            vs.extend_from_slice(&bytes[..partial]);
-            remainder_len = (n + remainder_len) % 8;
-            if remainder_len > 0 {
-                remainder = (bytes[partial] >> (8 - remainder_len)) as u64;
-            } else {
-                remainder = 0;
-                debug_assert_eq!(bytes[partial], 0);
-            }
-        }
-        if remainder_len > 0 {
-            let mut v = 0;
-            v |= remainder << (WINDOW_WIDTH - remainder_len);
-            debug_assert!(remainder_len < 8);
-            vs.push(v.to_be_bytes()[0]);
-        }
+                let partial = (n + rem.len()) / 8;
+                let bytes = value.to_be_bytes();
+                rem = PartialBits::new(bytes[partial], (n + rem.len()) % 8);
+                bytes[..partial].to_vec()
+            })
+            .collect();
+        vs.extend_from_slice(&rem.value());
         vs
     }
 }
