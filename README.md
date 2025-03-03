@@ -1,4 +1,4 @@
-# Bit operations on buffer  
+# Bit operations on [u8]  
 
 ### Usage  
   [u16] chunks to mnemonic indices by 11 bits.    
@@ -6,7 +6,7 @@
 
 ### Examples  
 ```
-use bits::{BitChunks, BitConjoin, BitIterator, ToBits};
+use nbit::{BitChunks, BitConjoin, BitIterator, ToBits};
 
 assert_eq!(
     vec![0b1111_1111, 0b1111_1111].bit_chunks(6).collect::<Vec<u8>>(),

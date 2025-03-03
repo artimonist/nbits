@@ -1,10 +1,10 @@
 [package]
-name = "bits"
+name = "nbit"
 version = "0.2.0"
 authors = ["Artimonist <artimonist@gmail.com>"]
 description = "An easy-to-use bits iterator and chunk tool."
 homepage = "https://artimonist.org/"
-repository = "https://github.com/artimonist/bits/"
+repository = "https://github.com/artimonist/nbit/"
 
 license = "MIT"
 keywords = ["bitcoin", "wallet", "mnemonic", "crypto", "btc"]

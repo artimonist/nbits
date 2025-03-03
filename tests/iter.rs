@@ -1,8 +1,7 @@
 #![cfg(test)]
 
-use bits::BitConjoin;
-use bits::*;
 use hex::FromHex;
+use nbit::*;
 
 #[test]
 fn test_bit_iter() {

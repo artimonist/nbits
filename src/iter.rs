@@ -2,7 +2,7 @@
 ///
 /// # Examples
 /// ```
-/// # use bits::BitIterator;
+/// # use nbit::BitIterator;
 /// assert_eq!(
 ///     [0b1111_0000_u8].bit_iter().collect::<Vec<bool>>(),
 ///     vec![true, true, true, true, false, false, false, false]
@@ -24,7 +24,7 @@ impl BitIterator for &[u8] {
 ///
 /// # Examples
 /// ```
-/// # use bits::ToBits;
+/// # use nbit::ToBits;
 /// assert_eq!(
 ///     vec![true, true, true, true, false, false, false, false].iter().to_bits(),
 ///     [0b1111_0000]
@@ -87,7 +87,7 @@ impl ByteWindow for [u8] {
 ///
 /// # Examples
 /// ```
-/// # use bits::BitChunks;
+/// # use nbit::BitChunks;
 /// assert_eq!(
 ///     vec![0b1111_1111, 0b1111_1111].bit_chunks(6).collect::<Vec<u8>>(),
 ///     vec![0b11_1111, 0b11_1111, 0b11_1100]
@@ -164,7 +164,7 @@ impl PartialBits {
 ///
 /// # Examples
 /// ```
-/// # use bits::BitConjoin;
+/// # use nbit::BitConjoin;
 /// assert_eq!(
 ///     vec![0b11_1111_u8, 0b11_1111, 0b11_1111].bit_conjoin(6),
 ///     vec![0b1111_1111, 0b1111_1111, 0b1100_0000]
