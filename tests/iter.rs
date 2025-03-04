@@ -1,7 +1,7 @@
 #![cfg(test)]
 
 use hex::FromHex;
-use nbit::*;
+use nbits::*;
 
 #[test]
 fn test_bit_iter() {
