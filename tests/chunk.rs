@@ -80,6 +80,6 @@ fn test_chunks_debug() {
 #[test]
 fn test_conjoin_debug() {
     assert_eq!([0b1111, 0b1111].bit_conjoin(4), vec![0b1111_1111]);
-    assert_eq!([1; 8].bit_conjoin(1), vec![0b1111_1111, 0b1111_1111]);
+    assert_eq!([1; 8].bit_conjoin(1), vec![0b1111_1111]);
     assert_eq!([1; 16].bit_conjoin(1), vec![0b1111_1111, 0b1111_1111]);
 }
