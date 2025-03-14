@@ -1,13 +1,13 @@
 [package]
 name = "nbits"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Artimonist <artimonist@gmail.com>"]
-description = "An easy-to-use bits iterator and chunk tool."
+description = "Bits operations on [u8]"
 homepage = "https://artimonist.org/"
 repository = "https://github.com/artimonist/nbits/"
 
 license = "MIT"
-keywords = ["bitcoin", "wallet", "mnemonic", "crypto", "btc"]
+keywords = ["bitcoin", "wallet", "mnemonic", "crypto", "base64"]
 categories = ["cryptography"]
 # rust-version = "1.84"
 edition = "2021"

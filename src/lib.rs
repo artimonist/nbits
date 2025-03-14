@@ -8,6 +8,7 @@
 //! ```
 //! use nbits::{BitChunks, BitConjoin, BitIterator, ToBits};
 //!
+//! // BitChunks
 //! assert_eq!(
 //!     vec![0b1111_1111, 0b1111_1111].bit_chunks(6).collect::<Vec<u8>>(),
 //!     vec![0b11_1111, 0b11_1111, 0b11_1100]
@@ -16,6 +17,8 @@
 //!     vec![0b1111_1111; 3].bit_chunks(11).collect::<Vec<u16>>(),
 //!     vec![0b111_1111_1111, 0b111_1111_1111, 0b110_0000_0000]
 //! );
+//!
+//! // BitConjoin
 //! assert_eq!(
 //!     vec![0b11_1111_u8, 0b11_1111, 0b11_1111].bit_conjoin(6),
 //!     vec![0b1111_1111, 0b1111_1111, 0b1100_0000]
@@ -24,16 +27,50 @@
 //!     vec![0b1111_u16, 0b1111, 0b1111].bit_conjoin(6),
 //!     vec![0b001111_00, 0b1111_0011, 0b1100_0000]
 //! );
+//!
+//! // BitIterator
 //! assert_eq!(
 //!     [0b1111_0000_u8].bit_iter().collect::<Vec<bool>>(),
 //!     vec![true, true, true, true, false, false, false, false]
 //! );
+//!
+//! // ToBits
 //! assert_eq!(
 //!     vec![true, true, true, true, false, false, false, false].iter().to_bits(),
 //!     [0b1111_0000]
 //! );
 //! ```
 
+mod chunk;
 mod iter;
 
+pub use chunk::*;
 pub use iter::*;
+
+macro_rules! assert_matches {
+    ($n: ident, $range: pat, $name: literal) => {
+        assert!(
+            matches!($n, $range),
+            "[nbits] {} size {} overflow: {}",
+            $name,
+            $n,
+            stringify!($range)
+        );
+    };
+}
+
+macro_rules! assert_range {
+    ($n: ident, $min: expr, $max: expr, $name: literal) => {
+        assert!(
+            $min <= $n && $n <= $max,
+            "[nbits] {} size {} overflow: {} <= n <= {}",
+            $name,
+            $n,
+            $min,
+            $max
+        );
+    };
+}
+
+pub(crate) use assert_matches;
+pub(crate) use assert_range;
