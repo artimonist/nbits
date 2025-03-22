@@ -1,6 +1,6 @@
 [package]
 name = "nbits"
-version = "0.3.0"
+version = "0.5.0"
 authors = ["Artimonist <artimonist@gmail.com>"]
 description = "Bits operations on [u8]"
 homepage = "https://artimonist.org/"

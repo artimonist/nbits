@@ -1,4 +1,4 @@
-use crate::{assert_matches, assert_range};
+use crate::assert_overflow;
 
 trait ByteWindow {
     // get window value from bytes. If insufficient, tail padding zero
@@ -33,7 +33,22 @@ impl ByteWindow for [u8] {
 /// );
 /// ```
 pub trait BitChunks {
+    /// Returns the bits in the buffer grouped by n
+    /// # Parameters
+    /// - `T`: the type to contains the grouped bits
+    /// - `n`: the number of bits to group
+    /// - 1 <= n <= size_of::<T>() * 8 <= 32
     fn bit_chunks<T>(&self, n: usize) -> impl Iterator<Item = T>
+    where
+        T: TryFrom<u64> + Default;
+
+    /// Returns the bits in the buffer grouped by n, and the remaining bits count
+    /// # Parameters
+    /// - `T`: the type to contains the grouped bits
+    /// - `n`: the number of bits to group
+    /// - 1 <= n <= size_of::<T>() * 8 <= 32
+    /// - `remain`: the remaining bits count = n - (buffer.len() * 8 % n)
+    fn bit_chunks_rem<T>(&self, n: usize, remain: &mut usize) -> impl Iterator<Item = T>
     where
         T: TryFrom<u64> + Default;
 }
@@ -44,16 +59,16 @@ impl BitChunks for [u8] {
         T: TryFrom<u64> + Default,
     {
         let valid_size = (std::mem::size_of::<T>() * 8).min(32);
-        assert_range!(n, 1, valid_size, "Chunks");
+        assert_overflow!(n, 1, valid_size, "Chunks");
 
         // enumerate bytes window of 64 bits width, split item values from those windows
-        const WINDOW_BYTES: usize = std::mem::size_of::<u64>();
+        const WINDOW_BITS: usize = std::mem::size_of::<u64>() * 8;
         let bit_mask: u64 = (0..n).fold(0, |acc, v| acc | (1 << v));
         let mut bit_pos = 0;
         (0..self.len()).flat_map(move |i| {
             let window_value = self.byte_window_64(i);
-            let window_end = i * 8 + WINDOW_BYTES * 8; // current bit window end
-            debug_assert!((i * 8..window_end).contains(&bit_pos)); // current bit window start
+            let window_end = i * 8 + WINDOW_BITS; // current bit window end
+            debug_assert!(matches!(window_end - bit_pos, 1..=64)); // current bit window size
 
             let mut vs = vec![];
             while (bit_pos + n) <= window_end && (bit_pos + n) < self.len() * 8 + n {
@@ -63,6 +78,14 @@ impl BitChunks for [u8] {
             }
             vs
         })
+    }
+
+    fn bit_chunks_rem<T>(&self, n: usize, remain: &mut usize) -> impl Iterator<Item = T>
+    where
+        T: TryFrom<u64> + Default,
+    {
+        *remain = n - (self.len() * 8 % n);
+        self.bit_chunks(n)
     }
 }
 
@@ -110,7 +133,29 @@ impl Bits {
 /// );
 /// ```
 pub trait BitConjoin<T> {
+    /// Conjoin the lowest n bits of each value
+    /// # Parameters
+    /// - `n`: the number of bits to conjoin
+    /// - 1 <= n <= 32
+    /// - if n > size_of::<T>() * 8, left padding zero bits
     fn bit_conjoin(self, n: usize) -> Vec<u8>;
+
+    /// Conjoin the lowest n bits of each value, and the remaining bits count
+    /// # Parameters
+    /// - `n`: the number of bits to conjoin
+    /// - 1 <= n <= 32
+    /// - if n > size_of::<T>() * 8, left padding zero bits
+    /// - `remain`: the remaining bits count to ignore
+    fn bit_conjoin_rem(self, n: usize, remain: usize) -> Vec<u8>
+    where
+        Self: Sized,
+    {
+        assert_overflow!(remain, 0, n - 1, "Conjoin");
+        let mut vs = self.bit_conjoin(n);
+        let tail_ignore_bytes = (vs.len() * 8 % n + remain) / 8;
+        vs.truncate(vs.len() - tail_ignore_bytes);
+        vs
+    }
 }
 
 impl<T, U> BitConjoin<U> for U
@@ -119,8 +164,8 @@ where
     U: Iterator<Item = T>,
 {
     fn bit_conjoin(self, n: usize) -> Vec<u8> {
-        assert_matches!(n, 1..=32, "Conjoin");
-        const WINDOW_WIDTH: usize = 64;
+        assert_overflow!(n, 1, 32, "Conjoin");
+        const WINDOW_BITS: usize = 64;
         let bit_mask: u64 = (0..n).fold(0, |acc, v| acc | (1 << v));
 
         let mut rem = Bits::new(0, 0);
@@ -128,7 +173,7 @@ where
             .map(|v| v.try_into().unwrap_or_default())
             .flat_map(|mut value: u64| {
                 value &= bit_mask;
-                value <<= WINDOW_WIDTH - n;
+                value <<= WINDOW_BITS - n;
                 rem.prefix_to(&mut value);
 
                 let partial = (n + rem.len()) / 8;

@@ -47,30 +47,19 @@ mod iter;
 pub use chunk::*;
 pub use iter::*;
 
-macro_rules! assert_matches {
-    ($n: ident, $range: pat, $name: literal) => {
-        assert!(
-            matches!($n, $range),
-            "[nbits] {} size {} overflow: {}",
-            $name,
-            $n,
-            stringify!($range)
-        );
-    };
-}
-
-macro_rules! assert_range {
+/// Assert overflow of parameter
+/// # Parameters
+/// - $n: parameter
+/// - $min: minimum value
+/// - $max: maximum value
+/// - $name: function name
+macro_rules! assert_overflow {
     ($n: ident, $min: expr, $max: expr, $name: literal) => {
+        let (name, param, n, min, max) = ($name, stringify!($n), $n, $min, $max);
         assert!(
-            $min <= $n && $n <= $max,
-            "[nbits] {} size {} overflow: {} <= n <= {}",
-            $name,
-            $n,
-            $min,
-            $max
+            $min as usize <= $n as usize && $n as usize <= $max as usize,
+            "[nbits] {name} parameter `{param}` overflow: `{n}` not in `{min}..={max}`",
         );
     };
 }
-
-pub(crate) use assert_matches;
-pub(crate) use assert_range;
+pub(crate) use assert_overflow;
