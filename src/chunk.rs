@@ -47,8 +47,8 @@ pub trait BitChunks {
     /// - `T`: the type to contains the grouped bits
     /// - `n`: the number of bits to group
     /// - 1 <= n <= size_of::<T>() * 8 <= 32
-    /// - `remain`: the remaining bits count = n - (buffer.len() * 8 % n)
-    fn bit_chunks_rem<T>(&self, n: usize, remain: &mut usize) -> impl Iterator<Item = T>
+    /// - `padding_zeros`: the padding bits count to ignore in the last group. `size_of::<T>() - self.len() * 8 % n``
+    fn bit_chunks_rem<T>(&self, n: usize, padding_zeros: &mut usize) -> impl Iterator<Item = T>
     where
         T: TryFrom<u64> + Default;
 }
@@ -80,11 +80,11 @@ impl BitChunks for [u8] {
         })
     }
 
-    fn bit_chunks_rem<T>(&self, n: usize, remain: &mut usize) -> impl Iterator<Item = T>
+    fn bit_chunks_rem<T>(&self, n: usize, padding_zeros: &mut usize) -> impl Iterator<Item = T>
     where
         T: TryFrom<u64> + Default,
     {
-        *remain = n - (self.len() * 8 % n);
+        *padding_zeros = size_of::<T>() - self.len() * 8 % n;
         self.bit_chunks(n)
     }
 }
