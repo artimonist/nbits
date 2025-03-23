@@ -41,9 +41,11 @@
 //! );
 //! ```
 
+mod bits;
 mod chunk;
 mod iter;
 
+pub use bits::*;
 pub use chunk::*;
 pub use iter::*;
 
