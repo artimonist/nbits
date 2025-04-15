@@ -2,7 +2,11 @@
 
 // mod arith;
 mod bit;
-// mod offset;
+mod offset;
+
+/**
+ * A struct representing a fixed-size array of bits.
+ */
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Bits<const N: usize>(pub [u8; N]);
