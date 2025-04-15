@@ -84,7 +84,7 @@ impl BitChunks for [u8] {
     where
         T: TryFrom<u64> + Default,
     {
-        *padding_zeros = size_of::<T>() - self.len() * 8 % n;
+        *padding_zeros = n - self.len() * 8 % n;
         self.bit_chunks(n)
     }
 }
