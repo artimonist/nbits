@@ -1,3 +1,4 @@
+#![allow(clippy::needless_range_loop)]
 use super::Bits;
 
 impl<const N: usize> std::ops::BitAnd for Bits<N> {
