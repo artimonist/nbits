@@ -1,51 +1,46 @@
-#![allow(clippy::needless_range_loop)]
 use super::Bits;
 
 impl<const N: usize> std::ops::BitAnd for Bits<N> {
     type Output = Self;
 
-    fn bitand(self, other: Self) -> Self::Output {
-        let mut result = [0; N];
-        for i in 0..N {
-            result[i] = self.0[i] & other.0[i];
-        }
-        Bits(result)
+    fn bitand(mut self, other: Self) -> Self::Output {
+        self.0.iter_mut().enumerate().for_each(|(i, v)| {
+            *v &= other.0[i];
+        });
+        self
     }
 }
 
 impl<const N: usize> std::ops::BitOr for Bits<N> {
     type Output = Self;
 
-    fn bitor(self, other: Self) -> Self::Output {
-        let mut result = [0; N];
-        for i in 0..N {
-            result[i] = self.0[i] | other.0[i];
-        }
-        Bits(result)
+    fn bitor(mut self, other: Self) -> Self::Output {
+        self.0.iter_mut().enumerate().for_each(|(i, v)| {
+            *v |= other.0[i];
+        });
+        self
     }
 }
 
 impl<const N: usize> std::ops::BitXor for Bits<N> {
     type Output = Self;
 
-    fn bitxor(self, other: Self) -> Self::Output {
-        let mut result = [0; N];
-        for i in 0..N {
-            result[i] = self.0[i] ^ other.0[i];
-        }
-        Bits(result)
+    fn bitxor(mut self, other: Self) -> Self::Output {
+        self.0.iter_mut().enumerate().for_each(|(i, v)| {
+            *v ^= other.0[i];
+        });
+        self
     }
 }
 
 impl<const N: usize> std::ops::Not for Bits<N> {
     type Output = Self;
 
-    fn not(self) -> Self::Output {
-        let mut result = [0; N];
-        for i in 0..N {
-            result[i] = !self.0[i];
-        }
-        Bits(result)
+    fn not(mut self) -> Self::Output {
+        self.0.iter_mut().for_each(|v| {
+            *v = !*v;
+        });
+        self
     }
 }
 
