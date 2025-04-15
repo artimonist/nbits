@@ -28,7 +28,7 @@ impl<const N: usize> std::ops::ShlAssign<usize> for Bits<N> {
         assert_overflow!(n, 1, N * 8 - 1, "<<=");
 
         let (n, m) = (n / 8, n % 8);
-        let ref mut data = self.0;
+        let data = &mut self.0;
         data.copy_within(n.., 0);
         data[N - n..].fill(0);
 
@@ -46,7 +46,7 @@ impl<const N: usize> std::ops::ShrAssign<usize> for Bits<N> {
         assert_overflow!(n, 1, N * 8 - 1, ">>=");
 
         let (n, m) = (n / 8, n % 8);
-        let ref mut data = self.0;
+        let data = &mut self.0;
         data.copy_within(..N - n, n);
         data[..n].fill(0);
 
