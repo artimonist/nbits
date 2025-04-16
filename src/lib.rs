@@ -41,13 +41,13 @@
 //! );
 //! ```
 
-mod bits;
 mod chunk;
 mod iter;
+mod nbits;
 
-pub use bits::*;
 pub use chunk::*;
 pub use iter::*;
+pub use nbits::*;
 
 /// Assert overflow of parameter
 /// # Parameters

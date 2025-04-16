@@ -1,7 +1,7 @@
 #![allow(unused)]
 
-// mod arith;
-mod bit;
+mod arith;
+mod mask;
 mod offset;
 
 /**
