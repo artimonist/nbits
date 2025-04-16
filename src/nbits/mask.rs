@@ -2,7 +2,7 @@ use super::Bits;
 
 impl<const N: usize> std::ops::BitAnd for Bits<N> {
     type Output = Self;
-    #[inline]
+    #[inline(always)]
     fn bitand(mut self, other: Self) -> Self::Output {
         self &= other;
         self
@@ -11,7 +11,7 @@ impl<const N: usize> std::ops::BitAnd for Bits<N> {
 
 impl<const N: usize> std::ops::BitAnd<&Bits<N>> for Bits<N> {
     type Output = Self;
-    #[inline]
+    #[inline(always)]
     fn bitand(mut self, rhs: &Self) -> Self::Output {
         self &= rhs;
         self
@@ -20,7 +20,7 @@ impl<const N: usize> std::ops::BitAnd<&Bits<N>> for Bits<N> {
 
 impl<const N: usize> std::ops::BitOr for Bits<N> {
     type Output = Self;
-    #[inline]
+    #[inline(always)]
     fn bitor(mut self, other: Self) -> Self::Output {
         self |= other;
         self
@@ -29,7 +29,7 @@ impl<const N: usize> std::ops::BitOr for Bits<N> {
 
 impl<const N: usize> std::ops::BitOr<&Bits<N>> for Bits<N> {
     type Output = Self;
-    #[inline]
+    #[inline(always)]
     fn bitor(mut self, rhs: &Self) -> Self::Output {
         self |= rhs;
         self
@@ -38,7 +38,7 @@ impl<const N: usize> std::ops::BitOr<&Bits<N>> for Bits<N> {
 
 impl<const N: usize> std::ops::BitXor for Bits<N> {
     type Output = Self;
-    #[inline]
+    #[inline(always)]
     fn bitxor(mut self, other: Self) -> Self::Output {
         self ^= other;
         self
@@ -47,7 +47,7 @@ impl<const N: usize> std::ops::BitXor for Bits<N> {
 
 impl<const N: usize> std::ops::BitXor<&Bits<N>> for Bits<N> {
     type Output = Self;
-    #[inline]
+    #[inline(always)]
     fn bitxor(mut self, rhs: &Self) -> Self::Output {
         self ^= rhs;
         self

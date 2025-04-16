@@ -11,14 +11,14 @@ mod offset;
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Bits<const N: usize>(pub [u8; N]);
 
-impl<const N: usize> Default for Bits<N> {
-    fn default() -> Self {
+impl<const N: usize> Bits<N> {
+    pub fn new() -> Self {
         Self([0; N])
     }
 }
 
-impl<const N: usize> Bits<N> {
-    pub fn new() -> Self {
+impl<const N: usize> Default for Bits<N> {
+    fn default() -> Self {
         Self([0; N])
     }
 }

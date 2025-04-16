@@ -1,24 +1,15 @@
-use std::io::Read;
-
 use super::Bits;
 use crate::assert_overflow;
 
+/**
+ * Offset operator `<<` && `<<=` for Bits
+ */
 impl<const N: usize> std::ops::Shl<usize> for Bits<N> {
     type Output = Self;
-
+    #[inline(always)]
     fn shl(mut self, n: usize) -> Self::Output {
         assert_overflow!(n, 1, N * 8 - 1, "<<");
         self <<= n;
-        self
-    }
-}
-
-impl<const N: usize> std::ops::Shr<usize> for Bits<N> {
-    type Output = Self;
-
-    fn shr(mut self, n: usize) -> Self::Output {
-        assert_overflow!(n, 1, N * 8 - 1, ">>");
-        self >>= n;
         self
     }
 }
@@ -38,6 +29,19 @@ impl<const N: usize> std::ops::ShlAssign<usize> for Bits<N> {
                 (*v, carry) = ((*v << m) | carry, *v >> (8 - m));
             });
         }
+    }
+}
+
+/**
+ * Offset operator `>>` && `>>=` for Bits
+ */
+impl<const N: usize> std::ops::Shr<usize> for Bits<N> {
+    type Output = Self;
+    #[inline(always)]
+    fn shr(mut self, n: usize) -> Self::Output {
+        assert_overflow!(n, 1, N * 8 - 1, ">>");
+        self >>= n;
+        self
     }
 }
 
