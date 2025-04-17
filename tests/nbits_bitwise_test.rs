@@ -3,7 +3,7 @@
 use nbits::Bits;
 
 #[test]
-fn test_bits_oper() {
+fn test_bits_bitwise() {
     assert_eq!(Bits([0]), Bits([0b0000_1111]) & Bits([0b1111_0000]));
     assert_eq!(Bits([0b1100]), Bits([0b0000_1111]) & Bits([0b1111_1100]));
 

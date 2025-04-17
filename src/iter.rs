@@ -10,11 +10,11 @@
 /// ```
 pub trait BitIterator {
     /// iterator of bit values
-    fn bit_iter(self) -> impl Iterator<Item = bool>;
+    fn bit_iter(self) -> impl DoubleEndedIterator<Item = bool>;
 }
 
 impl BitIterator for &[u8] {
-    fn bit_iter(self) -> impl Iterator<Item = bool> {
+    fn bit_iter(self) -> impl DoubleEndedIterator<Item = bool> {
         self.iter()
             .flat_map(|&v| (0_u8..8).rev().map(move |n| (v & (1 << n)) != 0))
     }

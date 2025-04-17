@@ -1,7 +1,9 @@
+use crate::nbits::bits_shl;
+
 use super::Bits;
 use std::ops::Add;
 
-fn bits_add_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
+pub fn bits_add_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
     let mut carry = false;
     x.iter_mut()
         .zip(y)
@@ -14,7 +16,7 @@ fn bits_add_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
     carry
 }
 
-fn bits_sub_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
+pub fn bits_sub_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
     let mut borrow = false;
     x.iter_mut()
         .zip(y)
@@ -27,15 +29,24 @@ fn bits_sub_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
     borrow
 }
 
-fn bits_mul_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
+pub fn bits_mul_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
+    use crate::BitIterator;
+    let mut overflow = false;
+    *x = y.bit_iter().rev().fold([0; N], |mut acc, bit| {
+        if bit {
+            overflow |= bits_add_overflow(&mut acc, x);
+        }
+        bits_shl(x, 1);
+        acc
+    });
+    overflow
+}
+
+pub fn bits_div_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
     todo!()
 }
 
-fn bits_div_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
-    todo!()
-}
-
-fn bits_rem_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
+pub fn bits_rem_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
     todo!()
 }
 

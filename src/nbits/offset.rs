@@ -1,8 +1,7 @@
 use super::Bits;
 use crate::assert_overflow;
 
-#[inline]
-fn bits_shl<const N: usize>(data: &mut [u8; N], n: usize) {
+pub fn bits_shl<const N: usize>(data: &mut [u8; N], n: usize) {
     let (n, m) = (n / 8, n % 8);
     data.copy_within(n.., 0);
     data[N - n..].fill(0);
@@ -15,8 +14,7 @@ fn bits_shl<const N: usize>(data: &mut [u8; N], n: usize) {
     }
 }
 
-#[inline]
-fn bits_shr<const N: usize>(data: &mut [u8; N], n: usize) {
+pub fn bits_shr<const N: usize>(data: &mut [u8; N], n: usize) {
     let (n, m) = (n / 8, n % 8);
     data.copy_within(..N - n, n);
     data[..n].fill(0);
