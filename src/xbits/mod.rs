@@ -1,3 +1,3 @@
-mod offset;
+mod bitwise;
 
-pub use offset::BitOffset;
+pub use bitwise::Bitwise;
