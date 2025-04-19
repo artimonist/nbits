@@ -18,10 +18,10 @@ pub trait BitIterator {
     /// ```
     /// # use nbits::Iterator;
     /// let mut data = [0u8; 2];
-    /// data.bits_from([true, true, true, true, false, false, false, false].into_iter());
+    /// data.bits_from_iter([true, true, true, true, false, false, false, false].into_iter());
     /// assert_eq!(data, [0b0000_0000, 0b1111_0000]);
     /// ```
-    fn bits_from(&mut self, iter: impl DoubleEndedIterator<Item = bool>);
+    fn bits_from_iter(&mut self, iter: impl DoubleEndedIterator<Item = bool>);
 }
 
 impl BitIterator for [u8] {
@@ -30,7 +30,7 @@ impl BitIterator for [u8] {
             .flat_map(|&v| (0_u8..8).rev().map(move |n| (v & (1 << n)) != 0))
     }
 
-    fn bits_from(&mut self, iter: impl DoubleEndedIterator<Item = bool>) {
+    fn bits_from_iter(&mut self, iter: impl DoubleEndedIterator<Item = bool>) {
         iter.rev()
             .chain(std::iter::repeat(false))
             .take(self.len() * 8)

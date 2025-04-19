@@ -42,18 +42,19 @@ impl Arithmetic for [u8] {
         use crate::Bitwise;
         use crate::Iterator;
 
+        let mut result = vec![0; self.len()];
         let mut overflow = false;
-        other
-            .bits_iter()
-            .rev()
-            .fold(vec![0; self.len()], |mut acc, bit| {
-                if bit {
-                    overflow |= acc.bits_add_overflow(self);
-                }
-                self.bits_shl_overflow(1);
-                acc
-            });
-        todo!()
+        for (i, bit) in other.bits_iter().rev().enumerate() {
+            if bit {
+                let mut multiple = self.to_vec();
+                overflow |= multiple.bits_shl_overflow(i);
+                println!("i: {}, multiple: {:?}", i, multiple);
+                overflow |= result.bits_add_overflow(&multiple);
+                println!("result: {:?}", result);
+            }
+        }
+        self.copy_from_slice(&result);
+        overflow
     }
 
     fn bits_div_overflow(&mut self, _other: &Self) -> bool {
@@ -91,5 +92,16 @@ mod test_arith {
         let mut a = [0b1111_1111, 0b0000_0000];
         assert_eq!(a.bits_sub_overflow(&[0b0000_0001]), false);
         assert_eq!(a, [0b1111_1110, 0b1111_1111]);
+    }
+
+    #[test]
+    fn test_bits_mul() {
+        let mut a = [0xff, 0xff];
+        assert_eq!(a.bits_mul_overflow(&[0b0000_0010]), true);
+        assert_eq!(a, [0b1111_1111, 0b1111_1110]);
+
+        let mut a = [0b0000_0001, 0b0000_0001];
+        assert_eq!(a.bits_mul_overflow(&[0b1111_1111]), false);
+        assert_eq!(a, [0b1111_1111, 0b1111_1111]);
     }
 }
