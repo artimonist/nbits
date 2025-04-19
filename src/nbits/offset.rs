@@ -8,7 +8,7 @@ pub fn bits_shl<const N: usize>(data: &mut [u8; N], n: usize) {
 
     if m != 0 {
         let mut carry = 0;
-        data.iter_mut().take(N - n / 8).rev().for_each(|v| {
+        data.iter_mut().take(N - n).rev().for_each(|v| {
             (*v, carry) = ((*v << m) | carry, *v >> (8 - m));
         });
     }

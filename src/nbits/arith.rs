@@ -43,11 +43,40 @@ pub fn bits_mul_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
 }
 
 pub fn bits_div_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
-    todo!()
+    match x.as_ref().cmp(y) {
+        std::cmp::Ordering::Less => {
+            x.fill(0);
+            false
+        }
+        std::cmp::Ordering::Equal => {
+            x.fill(0);
+            x[N - 1] = 1;
+            false
+        }
+        std::cmp::Ordering::Greater => {
+            todo!();
+            bits_sub_overflow(x, y);
+            false
+        }
+    }
 }
 
 pub fn bits_rem_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
-    todo!()
+    match x.as_ref().cmp(y) {
+        std::cmp::Ordering::Less => {
+            x.fill(0);
+            false
+        }
+        std::cmp::Ordering::Equal => {
+            x.fill(0);
+            false
+        }
+        std::cmp::Ordering::Greater => {
+            todo!();
+            bits_sub_overflow(x, y);
+            false
+        }
+    }
 }
 
 macro_rules! impl_arithmetic {

@@ -44,10 +44,12 @@
 mod chunk;
 mod iter;
 mod nbits;
+mod xbits;
 
 pub use chunk::*;
 pub use iter::*;
 pub use nbits::*;
+pub use xbits::*;
 
 /// Assert overflow of parameter
 /// # Parameters
