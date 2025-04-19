@@ -47,7 +47,7 @@ mod nbits;
 mod xbits;
 
 pub use chunk::*;
-pub use iter::*;
+pub use iter::{BitIterator, ToBits};
 pub use nbits::*;
 pub use xbits::*;
 

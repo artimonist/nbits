@@ -38,9 +38,22 @@ impl Arithmetic for [u8] {
             })
     }
 
-    fn bits_mul_overflow(&mut self, _other: &Self) -> bool {
-        // Implement multiplication overflow logic here
-        false
+    fn bits_mul_overflow(&mut self, other: &Self) -> bool {
+        use crate::Bitwise;
+        use crate::Iterator;
+
+        let mut overflow = false;
+        other
+            .bits_iter()
+            .rev()
+            .fold(vec![0; self.len()], |mut acc, bit| {
+                if bit {
+                    overflow |= acc.bits_add_overflow(self);
+                }
+                self.bits_shl_overflow(1);
+                acc
+            });
+        todo!()
     }
 
     fn bits_div_overflow(&mut self, _other: &Self) -> bool {
