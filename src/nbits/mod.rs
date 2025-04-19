@@ -5,9 +5,9 @@ mod bitwise;
 mod convert;
 mod offset;
 
-pub(self) use arith::{bits_add_overflow, bits_sub_overflow};
-pub(self) use bitwise::{bits_and, bits_not, bits_or, bits_xor};
-pub(self) use offset::{bits_shl, bits_shr};
+use arith::{bits_add_overflow, bits_sub_overflow};
+use bitwise::{bits_and, bits_not, bits_or, bits_xor};
+use offset::{bits_shl, bits_shr};
 
 /**
  * A struct representing a fixed-size array of bits.

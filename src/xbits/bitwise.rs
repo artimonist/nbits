@@ -76,6 +76,12 @@ pub trait Bitwise {
     /// assert_eq!([0b0000_1111, 0b0000_0011].bits_reverse(), [0b1100_0000, 0b1111_0000]);
     /// ```
     fn bits_reverse(&mut self) -> &mut Self;
+
+    /// Check if all bits are zero
+    fn bits_all_zero(&mut self) -> bool;
+
+    /// Check if all bits are one
+    fn bits_all_one(&mut self) -> bool;
 }
 
 impl Bitwise for [u8] {
@@ -160,6 +166,14 @@ impl Bitwise for [u8] {
         self.reverse();
         self.iter_mut().for_each(|a| *a = a.reverse_bits());
         self
+    }
+
+    fn bits_all_zero(&mut self) -> bool {
+        self.iter().all(|&b| b == 0)
+    }
+
+    fn bits_all_one(&mut self) -> bool {
+        self.iter().all(|&b| b == 0xff)
     }
 }
 
