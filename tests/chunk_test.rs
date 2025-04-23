@@ -1,6 +1,6 @@
 #![cfg(test)]
 use hex::FromHex;
-use nbits::*;
+use nbits::{BitChunks, BitConjoin};
 
 #[test]
 fn test_bit_chunks() {

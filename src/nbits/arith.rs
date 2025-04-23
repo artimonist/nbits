@@ -32,7 +32,7 @@ pub fn bits_sub_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
 pub fn bits_mul_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
     use crate::Iterator;
     let mut overflow = false;
-    *x = y.bits_iter().rev().fold([0; N], |mut acc, bit| {
+    *x = y.bit_iter().rev().fold([0; N], |mut acc, bit| {
         if bit {
             overflow |= bits_add_overflow(&mut acc, x);
         }

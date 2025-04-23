@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use nbits::*;
+use nbits::{BitChunks, BitConjoin, BitIterator, ToBits};
 
 #[test]
 fn test_bit_iter() {
@@ -87,7 +87,7 @@ fn test_doc() {
     );
 
     assert_eq!(
-        [0b1111_0000_u8].bits_iter().collect::<Vec<bool>>(),
+        [0b1111_0000_u8].bit_iter().collect::<Vec<bool>>(),
         vec![true, true, true, true, false, false, false, false]
     );
     assert_eq!(

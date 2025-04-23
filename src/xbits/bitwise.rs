@@ -13,10 +13,10 @@ pub trait Bitwise {
     /// ```
     /// # use nbits::Bitwise;
     /// let mut data: [u8; 2] = [0b1111_1111, 0b0000_0000];
-    /// assert_eq!(data.bits_shl_overflow(4), true);
+    /// assert_eq!(data.bit_shl_overflow(4), true);
     /// assert_eq!(data, [0b1111_0000, 0b0000_0000]);
     /// ```
-    fn bits_shl_overflow(&mut self, n: usize) -> bool;
+    fn bit_shl_overflow(&mut self, n: usize) -> bool;
 
     /// Bitwise operator `>>`
     /// Shift bits to the right
@@ -29,63 +29,63 @@ pub trait Bitwise {
     /// ```
     /// # use nbits::Bitwise;
     /// let mut data = [0b1111_1111, 0b0000_0000];
-    /// assert_eq!(data.bits_shr_overflow(4), false);
+    /// assert_eq!(data.bit_shr_overflow(4), false);
     /// assert_eq!(data, [0b0000_1111, 0b1111_0000]);
     /// ```
     /// # Note
     /// The right shift will fill the leftmost bits with 0
     /// and the rightmost bits with the original value
-    fn bits_shr_overflow(&mut self, n: usize) -> bool;
+    fn bit_shr_overflow(&mut self, n: usize) -> bool;
 
     /// Bitwise operator `&`
     /// # Examples
     /// ```
     /// # use nbits::Bitwise;
-    /// assert_eq!([0b0011_0011, 0b0011_0011].bits_and(&[0b1111_1111]), [0b0000_0000, 0b0011_0011]);
+    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_and(&[0b1111_1111]), [0b0000_0000, 0b0011_0011]);
     /// ```
-    fn bits_and(&mut self, other: &Self) -> &mut Self;
+    fn bit_be_and(&mut self, other: &Self) -> &mut Self;
 
     /// Bitwise operator `|`
     /// # Examples
     /// ```
     /// # use nbits::Bitwise;
-    /// assert_eq!([0b0011_0011, 0b0011_0011].bits_or(&[0b1111_1111]), [0b0011_0011, 0b1111_1111]);
+    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_or(&[0b1111_1111]), [0b0011_0011, 0b1111_1111]);
     /// ```
-    fn bits_or(&mut self, other: &Self) -> &mut Self;
+    fn bit_be_or(&mut self, other: &Self) -> &mut Self;
 
     /// Bitwise operator `^`
     /// # Examples
     /// ```
     /// # use nbits::Bitwise;
-    /// assert_eq!([0b0011_0011, 0b0011_0011].bits_xor(&[0b1111_1111]), [0b0011_0011, 0b1100_1100]);
+    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_xor(&[0b1111_1111]), [0b0011_0011, 0b1100_1100]);
     /// ```
-    fn bits_xor(&mut self, other: &Self) -> &mut Self;
+    fn bit_be_xor(&mut self, other: &Self) -> &mut Self;
 
     /// Bitwise operator `!`
     /// # Examples
     /// ```
     /// # use nbits::Bitwise;
-    /// assert_eq!([0b0000_1111, 0b0000_0011].bits_not(), [0b1111_0000, 0b1111_1100]);
+    /// assert_eq!([0b0000_1111, 0b0000_0011].bit_not(), [0b1111_0000, 0b1111_1100]);
     /// ```
-    fn bits_not(&mut self) -> &mut Self;
+    fn bit_not(&mut self) -> &mut Self;
 
     /// Reverse the bits of the data
     /// # Examples
     /// ```
     /// # use nbits::Bitwise;
-    /// assert_eq!([0b0000_1111, 0b0000_0011].bits_reverse(), [0b1100_0000, 0b1111_0000]);
+    /// assert_eq!([0b0000_1111, 0b0000_0011].bit_reverse(), [0b1100_0000, 0b1111_0000]);
     /// ```
-    fn bits_reverse(&mut self) -> &mut Self;
+    fn bit_reverse(&mut self) -> &mut Self;
 
     /// Check if all bits are zero
-    fn bits_all_zero(&mut self) -> bool;
+    fn bit_all_zero(&self) -> bool;
 
     /// Check if all bits are one
-    fn bits_all_one(&mut self) -> bool;
+    fn bit_all_one(&self) -> bool;
 }
 
 impl Bitwise for [u8] {
-    fn bits_shl_overflow(&mut self, n: usize) -> bool {
+    fn bit_shl_overflow(&mut self, n: usize) -> bool {
         let len = self.len();
         let data = self;
         if n >= len * 8 {
@@ -107,7 +107,7 @@ impl Bitwise for [u8] {
         false
     }
 
-    fn bits_shr_overflow(&mut self, n: usize) -> bool {
+    fn bit_shr_overflow(&mut self, n: usize) -> bool {
         let len = self.len();
         let data = self;
         if n >= len * 8 {
@@ -129,7 +129,8 @@ impl Bitwise for [u8] {
         false
     }
 
-    fn bits_and(&mut self, other: &Self) -> &mut Self {
+    #[inline]
+    fn bit_be_and(&mut self, other: &Self) -> &mut Self {
         self.iter_mut()
             .rev()
             .zip(other.iter().rev().chain(std::iter::repeat(&0)))
@@ -137,7 +138,8 @@ impl Bitwise for [u8] {
         self
     }
 
-    fn bits_or(&mut self, other: &Self) -> &mut Self {
+    #[inline]
+    fn bit_be_or(&mut self, other: &Self) -> &mut Self {
         self.iter_mut()
             .rev()
             .zip(other.iter().rev())
@@ -145,7 +147,8 @@ impl Bitwise for [u8] {
         self
     }
 
-    fn bits_xor(&mut self, other: &Self) -> &mut Self {
+    #[inline]
+    fn bit_be_xor(&mut self, other: &Self) -> &mut Self {
         self.iter_mut()
             .rev()
             .zip(other.iter().rev().chain(std::iter::repeat(&0)))
@@ -157,22 +160,26 @@ impl Bitwise for [u8] {
         self
     }
 
-    fn bits_not(&mut self) -> &mut Self {
+    #[inline]
+    fn bit_not(&mut self) -> &mut Self {
         self.iter_mut().for_each(|a| *a = !*a);
         self
     }
 
-    fn bits_reverse(&mut self) -> &mut Self {
+    #[inline]
+    fn bit_reverse(&mut self) -> &mut Self {
         self.reverse();
         self.iter_mut().for_each(|a| *a = a.reverse_bits());
         self
     }
 
-    fn bits_all_zero(&mut self) -> bool {
+    #[inline]
+    fn bit_all_zero(&self) -> bool {
         self.iter().all(|&b| b == 0)
     }
 
-    fn bits_all_one(&mut self) -> bool {
+    #[inline]
+    fn bit_all_one(&self) -> bool {
         self.iter().all(|&b| b == 0xff)
     }
 }
@@ -184,15 +191,15 @@ mod test_offset {
     #[test]
     fn test_bits_shl() {
         let mut data: [u8; 2] = [0b1111_1111, 0b0000_0000];
-        assert_eq!(data.bits_shl_overflow(4), true);
+        assert_eq!(data.bit_shl_overflow(4), true);
         assert_eq!(data, [0b1111_0000, 0b0000_0000]);
     }
 
     #[test]
     fn test_bits_shr() {
         let mut data: [u8; 2] = [0b1111_1111, 0b0000_0000];
-        assert_eq!(data.bits_shr_overflow(4), false);
+        assert_eq!(data.bit_shr_overflow(4), false);
         assert_eq!(data, [0b0000_1111, 0b1111_0000]);
-        assert_eq!([0b1].bits_shr_overflow(1), true);
+        assert_eq!([0b1].bit_shr_overflow(1), true);
     }
 }
