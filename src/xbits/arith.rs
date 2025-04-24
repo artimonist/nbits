@@ -2,15 +2,19 @@
  * Arithmetic operations for [u8]
  */
 pub trait Arithmetic {
-    fn bit_add_overflow(&mut self, other: &Self) -> bool;
-    fn bit_sub_overflow(&mut self, other: &Self) -> bool;
-    fn bit_mul_overflow(&mut self, other: &Self) -> bool;
-    fn bit_div_overflow(&mut self, other: &Self) -> bool;
-    fn bit_rem_overflow(&mut self, other: &Self) -> bool;
+    type Other: ?Sized;
+
+    fn bit_be_add(&mut self, other: &Self::Other) -> bool;
+    fn bit_be_sub(&mut self, other: &Self::Other) -> bool;
+    fn bit_be_mul(&mut self, other: &Self::Other) -> bool;
+    fn bit_be_div(&mut self, other: &Self::Other) -> bool;
+    fn bit_be_rem(&mut self, other: &Self::Other) -> bool;
 }
 
 impl Arithmetic for [u8] {
-    fn bit_add_overflow(&mut self, other: &Self) -> bool {
+    type Other = Self;
+
+    fn bit_be_add(&mut self, other: &Self) -> bool {
         self.iter_mut()
             .rev()
             .zip(other.iter().rev().chain(std::iter::repeat(&0)))
@@ -24,7 +28,7 @@ impl Arithmetic for [u8] {
             })
     }
 
-    fn bit_sub_overflow(&mut self, other: &Self) -> bool {
+    fn bit_be_sub(&mut self, other: &Self) -> bool {
         self.iter_mut()
             .rev()
             .zip(other.iter().rev().chain(std::iter::repeat(&0)))
@@ -38,7 +42,7 @@ impl Arithmetic for [u8] {
             })
     }
 
-    fn bit_mul_overflow(&mut self, other: &Self) -> bool {
+    fn bit_be_mul(&mut self, other: &Self) -> bool {
         use super::Bitwise;
         use super::Iterator;
 
@@ -47,17 +51,15 @@ impl Arithmetic for [u8] {
         for (i, bit) in other.bit_iter().rev().enumerate() {
             if bit {
                 let mut multiple = self.to_vec();
-                overflow |= multiple.bit_shl_overflow(i);
-                println!("i: {}, multiple: {:?}", i, multiple);
-                overflow |= result.bit_add_overflow(&multiple);
-                println!("result: {:?}", result);
+                overflow |= multiple.bit_shl(i);
+                overflow |= result.bit_be_add(&multiple);
             }
         }
         self.copy_from_slice(&result);
         overflow
     }
 
-    fn bit_div_overflow(&mut self, other: &Self) -> bool {
+    fn bit_be_div(&mut self, other: &Self) -> bool {
         use super::Bitwise;
         use super::Iterator;
 
@@ -70,13 +72,13 @@ impl Arithmetic for [u8] {
             self.fill(0);
             return false;
         }
-        if ones_a == ones_b {
-            match self.bit_sub_overflow(other) {
-                true => self.fill(0),
-                false => self.bit_from_iter(std::iter::once(true)),
-            }
-            return false;
-        }
+        // if ones_a == ones_b {
+        //     match self.bit_sub_overflow(other) {
+        //         true => self.fill(0),
+        //         false => self.bit_from_iter(std::iter::once(true)),
+        //     }
+        //     return false;
+        // }
 
         // ones_a >= ones_b && self >= other
         let len = self.len();
@@ -91,8 +93,8 @@ impl Arithmetic for [u8] {
 
         for i in 0..ones_a - ones_b {
             let mut tmp = b.clone();
-            tmp.bit_shl_overflow(i);
-            if a.bit_sub_overflow(&tmp) {
+            tmp.bit_shl(i);
+            if a.bit_be_sub(&tmp) {
                 // r[i] = 1;
                 // a.bits_add_overflow(&tmp);
             }
@@ -107,11 +109,16 @@ impl Arithmetic for [u8] {
         false
     }
 
-    fn bit_rem_overflow(&mut self, _other: &Self) -> bool {
+    fn bit_be_rem(&mut self, _other: &Self) -> bool {
         // Implement remainder overflow logic here
         false
     }
 }
+
+/**
+ * Arithmetic operations for Vec<u8>
+ */
+// impl Arithmetic for Vec<u8> {}
 
 #[cfg(test)]
 mod test_arith {
@@ -120,33 +127,33 @@ mod test_arith {
     #[test]
     fn test_bits_add() {
         let mut a = [0b1111_1111, 0b1111_1111];
-        assert_eq!(a.bit_add_overflow(&[0b0000_0001]), true);
+        assert_eq!(a.bit_be_add(&[0b0000_0001]), true);
         assert_eq!(a, [0b0000_0000, 0b0000_0000]);
 
         let mut a = [0b0000_0000, 0b0000_0001];
-        assert_eq!(a.bit_add_overflow(&[0b1111_1111]), false);
+        assert_eq!(a.bit_be_add(&[0b1111_1111]), false);
         assert_eq!(a, [0b0000_0001, 0b0000_0000]);
     }
 
     #[test]
     fn test_bits_sub() {
         let mut a = [0b0000_0000, 0b0000_0001];
-        assert_eq!(a.bit_sub_overflow(&[0b1111_1111]), true);
+        assert_eq!(a.bit_be_sub(&[0b1111_1111]), true);
         assert_eq!(a, [0b1111_1111, 0b0000_0010]);
 
         let mut a = [0b1111_1111, 0b0000_0000];
-        assert_eq!(a.bit_sub_overflow(&[0b0000_0001]), false);
+        assert_eq!(a.bit_be_sub(&[0b0000_0001]), false);
         assert_eq!(a, [0b1111_1110, 0b1111_1111]);
     }
 
     #[test]
     fn test_bits_mul() {
         let mut a = [0xff, 0xff];
-        assert_eq!(a.bit_mul_overflow(&[0b0000_0010]), true);
+        assert_eq!(a.bit_be_mul(&[0b0000_0010]), true);
         assert_eq!(a, [0b1111_1111, 0b1111_1110]);
 
         let mut a = [0b0000_0001, 0b0000_0001];
-        assert_eq!(a.bit_mul_overflow(&[0b1111_1111]), false);
+        assert_eq!(a.bit_be_mul(&[0b1111_1111]), false);
         assert_eq!(a, [0b1111_1111, 0b1111_1111]);
     }
 

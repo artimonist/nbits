@@ -15,16 +15,6 @@ pub trait BitIterator {
     /// ```
     fn bit_iter(&self) -> impl DoubleEndedIterator<Item = bool>;
 
-    /// Convert enumerated bool values to buffer
-    /// # Examples
-    /// ```
-    /// # use nbits::Iterator;
-    /// let mut data = [0u8; 2];
-    /// data.bit_from_iter([true, true, true, true, false, false, false, false].into_iter());
-    /// assert_eq!(data, [0b1111_0000, 0b0000_0000]);
-    /// ```
-    fn bit_from_iter(&mut self, iter: impl Iterator<Item = bool>);
-
     /// Returns the bits in the buffer grouped by n  
     ///
     /// # Parameters  
@@ -47,10 +37,6 @@ pub trait BitIterator {
     fn bit_chunks<T>(&self, n: usize) -> impl Iterator<Item = T>
     where
         T: TryFrom<u64> + Default;
-
-    fn bit_from_chunks<T>(&mut self, n: usize, chunks: impl Iterator<Item = T>)
-    where
-        T: TryInto<u64>;
 }
 
 impl BitIterator for [u8] {
@@ -59,22 +45,12 @@ impl BitIterator for [u8] {
             .flat_map(|&v| (0_u8..8).rev().map(move |n| (v & (1 << n)) != 0))
     }
 
-    fn bit_from_iter(&mut self, iter: impl Iterator<Item = bool>) {
-        self.fill(0);
-        iter.take(self.len() * 8).enumerate().for_each(|(i, bit)| {
-            if bit {
-                let (n, m) = (i / 8, i % 8);
-                self[n] |= 1 << (7 - m);
-            }
-        });
-    }
-
     fn bit_chunks<T>(&self, n: usize) -> impl Iterator<Item = T>
     where
         T: TryFrom<u64> + Default,
     {
         let valid_size = (std::mem::size_of::<T>() * 8).min(32);
-        assert_overflow!(n, 1, valid_size, "Chunks");
+        assert_overflow!(n, 1, valid_size, "bit_chunks");
 
         // enumerate bytes window of 64 bits width, split item values from those windows
         let bit_mask: u64 = (0..n).fold(0, |acc, v| acc | (1 << v));
@@ -93,13 +69,6 @@ impl BitIterator for [u8] {
             vs
         })
     }
-
-    fn bit_from_chunks<T>(&mut self, _n: usize, _chunks: impl Iterator<Item = T>)
-    where
-        T: TryInto<u64>,
-    {
-        todo!()
-    }
 }
 
 pub trait FromBits {
@@ -111,7 +80,7 @@ pub trait FromBits {
     /// let data = Vec::from_bits(bits.into_iter());
     /// assert_eq!(data, [0b0000_1111, 0b0000_0000]);
     /// ```
-    fn from_bits<U>(bits: U) -> Vec<u8>
+    fn from_bits<U>(bits: U) -> Self
     where
         U: Iterator<Item = bool>;
 
@@ -134,7 +103,7 @@ pub trait FromBits {
     ///     vec![0b001111_00, 0b1111_0011, 0b1100_0000]
     /// );
     /// ```
-    fn from_chunks<T, U>(chunks: U, n: usize) -> Vec<u8>
+    fn from_chunks<T, U>(chunks: U, n: usize) -> Self
     where
         T: TryInto<u64>,
         U: Iterator<Item = T>;
@@ -185,6 +154,30 @@ impl FromBits for Vec<u8> {
             .collect();
         vs.extend_from_slice(&rem.value());
         vs
+    }
+}
+
+impl<const N: usize> FromBits for [u8; N] {
+    fn from_bits<U>(bits: U) -> Self
+    where
+        U: Iterator<Item = bool>,
+    {
+        let mut result = [0; N];
+        bits.take(N * 8).enumerate().for_each(|(i, bit)| {
+            if bit {
+                let (n, m) = (i / 8, i % 8);
+                result[n] |= 1 << (7 - m);
+            }
+        });
+        result
+    }
+
+    fn from_chunks<T, U>(_chunks: U, _n: usize) -> Self
+    where
+        T: TryInto<u64>,
+        U: Iterator<Item = T>,
+    {
+        todo!()
     }
 }
 
