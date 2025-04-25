@@ -42,14 +42,14 @@
 //! ```
 
 mod chunk;
+mod core;
 mod iter;
 mod nbits;
-mod xbits;
 
 pub use chunk::*;
+pub use core::*;
 pub use iter::{BitIterator, ToBits};
 pub use nbits::*;
-pub use xbits::*;
 
 /// Assert overflow of parameter
 /// # Parameters
