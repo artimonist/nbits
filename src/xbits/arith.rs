@@ -1,3 +1,6 @@
+use super::Bitwise;
+use super::Iterator;
+
 /**
  * Arithmetic operations for [u8]
  */
@@ -5,10 +8,72 @@ pub trait Arithmetic {
     type Other: ?Sized;
 
     fn bit_be_add(&mut self, other: &Self::Other) -> bool;
+    fn bit_le_add(&mut self, other: &Self::Other) -> bool;
+
     fn bit_be_sub(&mut self, other: &Self::Other) -> bool;
+    fn bit_le_sub(&mut self, other: &Self::Other) -> bool;
+
     fn bit_be_mul(&mut self, other: &Self::Other) -> bool;
+    fn bit_le_mul(&mut self, other: &Self::Other) -> bool;
+
+    /// Bit arithmetic operator `/=` for big-endian
+    /// # Example
+    /// ```
+    /// # use nbits::Arithmetic;
+    /// let (a, b) = ([0b1100_0011, 0b0000_0001], [0b1000_0001]);
+    /// let mut x = a.clone();
+    /// x.as_mut().bit_be_div(&b);
+    /// // assert_eq!(x, (u16::from_be_bytes(a) / u16::from_be_bytes([0, b[0]])).to_be_bytes());
+    /// ```
     fn bit_be_div(&mut self, other: &Self::Other) -> bool;
+
+    /// Bit arithmetic operator `/=` for little-endian
+    /// # Example
+    /// ```
+    /// # use nbits::Arithmetic;
+    /// let (a, b) = ([0b1100_0011, 0b0000_0001], [0b1000_0001]);
+    /// println!("a: {}, b: {}", u16::from_le_bytes(a), u16::from_le_bytes([b[0], 0]));
+    /// let mut x = a.clone();
+    /// x.as_mut().bit_le_div(&b);
+    /// // assert_eq!(x, (u16::from_le_bytes(a) / u16::from_le_bytes([b[0], 0])).to_le_bytes());
+    /// ```
+    fn bit_le_div(&mut self, other: &Self::Other) -> bool;
+
+    /// Bit arithmetic operator `%=`
+    /// # Example
+    /// ```
+    /// # use nbits::Arithmetic;
+    /// let (a, b) = ([0b1100_0011, 0b0000_0001], [0b0000_0001, 0b1000_0001]);
+    /// let mut x = a.clone();
+    /// x.as_mut().bit_be_rem(&b);
+    /// // assert_eq!(x, (u16::from_be_bytes(a) % u16::from_be_bytes(b)).to_be_bytes());
+    /// ```
     fn bit_be_rem(&mut self, other: &Self::Other) -> bool;
+    fn bit_le_rem(&mut self, other: &Self::Other) -> bool;
+
+    /// Comparison for big-endian
+    /// # Examples
+    /// ```
+    /// # use nbits::Arithmetic;
+    /// # use std::cmp::Ordering;
+    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_cmp(&[0b1111_1111]), Ordering::Greater);
+    /// assert_eq!([0b0000_0000, 0b0011_0011].bit_be_cmp(&[0b1111_1111]), Ordering::Less);
+    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_cmp(&[0b0000_0000, 0b1111_1111]), Ordering::Greater);
+    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_cmp(&[0b1111_1111, 0b0000_0000]), Ordering::Less);
+    /// ```
+    fn bit_be_cmp(&self, other: &Self) -> std::cmp::Ordering;
+
+    /// Comparison for little-endian
+    /// # Examples
+    /// ```
+    /// # use nbits::Arithmetic;
+    /// # use std::cmp::Ordering;
+    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_le_cmp(&[0b1111_1111]), Ordering::Greater);
+    /// assert_eq!([0b0011_0011, 0b0000_0000].bit_le_cmp(&[0b1111_1111]), Ordering::Less);
+    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_le_cmp(&[0b0000_0000, 0b1111_1111]), Ordering::Less);
+    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_le_cmp(&[0b1111_1111, 0b0000_0000]), Ordering::Greater);
+    /// ```
+    fn bit_le_cmp(&self, other: &Self) -> std::cmp::Ordering;
 }
 
 impl Arithmetic for [u8] {
@@ -18,6 +83,19 @@ impl Arithmetic for [u8] {
         self.iter_mut()
             .rev()
             .zip(other.iter().rev().chain(std::iter::repeat(&0)))
+            .fold(false, |mut carry, (a, b)| {
+                match (carry, *b) {
+                    (true, 0xff) => carry = true,
+                    (true, _) => (*a, carry) = a.overflowing_add(b + 1),
+                    (false, _) => (*a, carry) = a.overflowing_add(*b),
+                };
+                carry
+            })
+    }
+
+    fn bit_le_add(&mut self, other: &Self::Other) -> bool {
+        self.iter_mut()
+            .zip(other.iter().chain(std::iter::repeat(&0)))
             .fold(false, |mut carry, (a, b)| {
                 match (carry, *b) {
                     (true, 0xff) => carry = true,
@@ -42,10 +120,20 @@ impl Arithmetic for [u8] {
             })
     }
 
-    fn bit_be_mul(&mut self, other: &Self) -> bool {
-        use super::Bitwise;
-        use super::Iterator;
+    fn bit_le_sub(&mut self, _other: &Self::Other) -> bool {
+        self.iter_mut()
+            .zip(_other.iter().chain(std::iter::repeat(&0)))
+            .fold(false, |mut borrow, (a, b)| {
+                match (borrow, *b) {
+                    (true, 0xff) => borrow = true,
+                    (true, _) => (*a, borrow) = a.overflowing_sub(b + 1),
+                    (false, _) => (*a, borrow) = a.overflowing_sub(*b),
+                };
+                borrow
+            })
+    }
 
+    fn bit_be_mul(&mut self, other: &Self) -> bool {
         let mut result = vec![0; self.len()];
         let mut overflow = false;
         for (i, bit) in other.bit_iter().rev().enumerate() {
@@ -59,64 +147,119 @@ impl Arithmetic for [u8] {
         overflow
     }
 
-    fn bit_be_div(&mut self, other: &Self) -> bool {
-        use super::Bitwise;
-        use super::Iterator;
-
-        let ones_a = self.len() * 8 - self.bit_iter().take_while(|&b| !b).count();
-        let ones_b = other.len() * 8 - other.bit_iter().take_while(|&b| !b).count();
-        if ones_b == 0 {
-            return true;
-        }
-        if ones_a < ones_b {
-            self.fill(0);
-            return false;
-        }
-        // if ones_a == ones_b {
-        //     match self.bit_sub_overflow(other) {
-        //         true => self.fill(0),
-        //         false => self.bit_from_iter(std::iter::once(true)),
-        //     }
-        //     return false;
-        // }
-
-        // ones_a >= ones_b && self >= other
-        let len = self.len();
-        let a = self;
-        let mut b = match len > other.len() {
-            true => vec![0; len - other.len()],
-            false => vec![0; 0],
-        };
-        b.extend_from_slice(other);
-
-        // let mut r = vec![0; len];
-
-        for i in 0..ones_a - ones_b {
-            let mut tmp = b.clone();
-            tmp.bit_shl(i);
-            if a.bit_be_sub(&tmp) {
-                // r[i] = 1;
-                // a.bits_add_overflow(&tmp);
+    fn bit_le_mul(&mut self, _other: &Self::Other) -> bool {
+        let mut result = vec![0; self.len()];
+        let mut overflow = false;
+        for (i, bit) in _other.bit_iter().enumerate() {
+            if bit {
+                let mut multiple = self.to_vec();
+                overflow |= multiple.bit_shl(i);
+                overflow |= result.bit_le_add(&multiple);
             }
         }
-        // let mut multiple = 1 << (ones_a - ones_b);
-        // divisor.bits_shl_overflow(ones_a - ones_b);
+        self.copy_from_slice(&result);
+        overflow
+    }
 
-        // let mut result = self[..].to_vec();
-        // result.bits_shr_overflow(ones_a - ones_b);
+    fn bit_be_div(&mut self, other: &Self) -> bool {
+        if other.iter().all(|&b| b == 0) {
+            return true; // Division by zero, return overflow
+        }
 
-        // self.copy_from_slice(&result);
+        let mut result = vec![0; self.len()];
+        let mut rem = vec![0; self.len()];
+
+        for bit in self.bit_iter().rev() {
+            rem.bit_shl(1);
+            if bit {
+                rem[0] |= 1;
+            }
+            if rem.as_slice() >= other {
+                rem.bit_be_sub(other);
+                result[0] |= 1;
+            }
+            result.bit_shl(1);
+        }
+        result.bit_shr(1); // Adjust for the extra shift
+        self.copy_from_slice(&result);
         false
     }
 
-    fn bit_be_rem(&mut self, _other: &Self) -> bool {
-        // Implement remainder overflow logic here
+    fn bit_le_div(&mut self, other: &Self::Other) -> bool {
+        if other.iter().all(|&b| b == 0) {
+            return true; // Division by zero, return overflow
+        }
+        if self.bit_be_cmp(other) == std::cmp::Ordering::Greater {
+            self.fill(0);
+            return false;
+        }
+        let mut result = vec![0; self.len()];
+        while !self.bit_be_sub(other) {
+            result.bit_be_add(&[1]);
+        }
+        self.copy_from_slice(&result);
         false
+    }
+
+    fn bit_be_rem(&mut self, other: &Self) -> bool {
+        let mut rem = vec![0; self.len()];
+        for bit in self.bit_iter() {
+            rem.bit_shl(1);
+            if bit {
+                let len = rem.len();
+                rem[len - 1] |= 1;
+            }
+            if rem.as_slice() >= other {
+                rem.bit_be_sub(other);
+            }
+        }
+        self.copy_from_slice(&rem);
+        false
+    }
+
+    fn bit_le_rem(&mut self, other: &Self::Other) -> bool {
+        if other.iter().all(|&b| b == 0) {
+            return true; // Division by zero, return overflow
+        }
+        if self.len() < other.len() {
+            self.fill(0);
+            return false;
+        }
+        let mut result = vec![0; self.len()];
+        while !self.bit_be_sub(other) {
+            result.bit_be_add(&[1]);
+        }
+        false
+    }
+
+    fn bit_be_cmp(&self, other: &Self) -> std::cmp::Ordering {
+        if self.len() == other.len() {
+            return self.iter().cmp(other.iter());
+        }
+        let diff = self.len().abs_diff(other.len());
+        let zeros = std::iter::repeat_n(&0, diff);
+        match self.len() < other.len() {
+            true => zeros.chain(self.iter()).cmp(other.iter()),
+            false => self.iter().cmp(zeros.chain(other.iter())),
+        }
+    }
+
+    fn bit_le_cmp(&self, other: &Self) -> std::cmp::Ordering {
+        if self.len() == other.len() {
+            return self.iter().rev().cmp(other.iter().rev());
+        }
+        let diff = self.len().abs_diff(other.len());
+        let zeros = std::iter::repeat_n(&0, diff);
+        match self.len() < other.len() {
+            true => self.iter().chain(zeros).rev().cmp(other.iter().rev()),
+            false => self.iter().rev().cmp(other.iter().chain(zeros).rev()),
+        }
     }
 }
 
 /**
  * Arithmetic operations for Vec<u8>
+ * Auto adjust the length of Vec<u8>.
  */
 // impl Arithmetic for Vec<u8> {}
 
@@ -171,5 +314,35 @@ mod test_arith {
         // // 5 == 0b0101, 7 == 0b0111
         // println!("x: {}, y: {}, z: {}", x, y, z);
         // assert_eq!(x / y, z);
+    }
+
+    #[test]
+    fn test_bit_cmp() {
+        // assert_eq!(
+        //     [0b0000_0000, 0b0000_0000].bit_be_cmp(&[0b1111_1111]),
+        //     std::cmp::Ordering::Less
+        // );
+
+        const A: [u8; 2] = [0b0011_0011, 0b0011_0011];
+        const B: [u8; 2] = [0b1111_1111, 0b0000_0000];
+        const C: [u8; 2] = [0b0000_0000, 0b1111_1111];
+
+        let (a, b, c) = (
+            u16::from_le_bytes(A),
+            u16::from_le_bytes(B),
+            u16::from_le_bytes(C),
+        );
+        println!("a: {a:016b} = {a}, b: {b:016b} = {b}, c: {c:016b} = {c}");
+        assert_eq!(a.cmp(&b), A.as_ref().bit_le_cmp(&B));
+        assert_eq!(a.cmp(&c), A.as_ref().bit_le_cmp(&C));
+
+        let (a, b, c) = (
+            u16::from_be_bytes(A),
+            u16::from_be_bytes(B),
+            u16::from_be_bytes(C),
+        );
+        println!("a: {a:016b} = {a}, b: {b:016b} = {b}, c: {c:016b} = {c}");
+        assert_eq!(a.cmp(&b), A.as_ref().bit_be_cmp(&B));
+        assert_eq!(a.cmp(&c), A.as_ref().bit_be_cmp(&C));
     }
 }

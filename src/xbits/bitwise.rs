@@ -101,33 +101,33 @@ pub trait Bitwise {
     /// ```
     fn bit_le_xor(&mut self, other: &Self) -> &mut Self;
 
-    /// Bitwise comparison for big-endian
-    /// # Examples
-    /// ```
-    /// # use nbits::Bitwise;
-    /// # use std::cmp::Ordering;
-    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_cmp(&[0b1111_1111]), Ordering::Greater);
-    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_cmp(&[0b0000_0000, 0b1111_1111]), Ordering::Greater);
-    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_cmp(&[0b1111_1111, 0b0000_0000]), Ordering::Less);
-    /// ```
-    fn bit_be_cmp(&self, other: &Self) -> std::cmp::Ordering;
-
-    /// Bitwise comparison for little-endian
-    /// # Examples
-    /// ```
-    /// # use nbits::Bitwise;
-    /// # use std::cmp::Ordering;
-    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_le_cmp(&[0b1111_1111]), Ordering::Greater);
-    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_le_cmp(&[0b0000_0000, 0b1111_1111]), Ordering::Less);
-    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_le_cmp(&[0b1111_1111, 0b0000_0000]), Ordering::Greater);
-    /// ```
-    fn bit_le_cmp(&self, other: &Self) -> std::cmp::Ordering;
-
     /// Check if all bits are zero
     fn bit_all_zero(&self) -> bool;
 
     /// Check if all bits are one
     fn bit_all_one(&self) -> bool;
+
+    /// Count the number of trailing zeros
+    /// # Examples
+    /// ```
+    /// # use nbits::Bitwise;
+    /// assert_eq!([0b0001_0000, 0b1000_0011].bit_leading_zeros(), 3);
+    /// assert_eq!([0b0000_0000, 0b1000_0011].bit_leading_zeros(), 8);
+    /// assert_eq!([0b0000_0000, 0b0001_0011].bit_leading_zeros(), 11);
+    /// assert_eq!([0b0000_0000, 0b0000_0000].bit_leading_zeros(), 16);
+    /// ```
+    fn bit_leading_zeros(&self) -> usize;
+
+    /// Count the number of leading zeros
+    /// # Examples
+    /// ```
+    /// # use nbits::Bitwise;
+    /// assert_eq!([0b0000_1111, 0b0000_1000].bit_trailing_zeros(), 3);
+    /// assert_eq!([0b0000_1111, 0b0000_0000].bit_trailing_zeros(), 8);
+    /// assert_eq!([0b1111_1000, 0b0000_0000].bit_trailing_zeros(), 11);
+    /// assert_eq!([0b0000_0000, 0b0000_0000].bit_trailing_zeros(), 16);
+    /// ```
+    fn bit_trailing_zeros(&self) -> usize;
 }
 
 impl Bitwise for [u8] {
@@ -243,21 +243,6 @@ impl Bitwise for [u8] {
         self
     }
 
-    fn bit_be_cmp(&self, other: &Self) -> std::cmp::Ordering {
-        match self.len().cmp(&other.len()) {
-            std::cmp::Ordering::Equal => self.iter().cmp(other.iter()),
-            ord => ord,
-        }
-    }
-
-    #[inline]
-    fn bit_le_cmp(&self, other: &Self) -> std::cmp::Ordering {
-        match self.len().cmp(&other.len()) {
-            std::cmp::Ordering::Equal => self.iter().rev().cmp(other.iter().rev()),
-            ord => ord,
-        }
-    }
-
     #[inline]
     fn bit_all_zero(&self) -> bool {
         self.iter().all(|&b| b == 0)
@@ -266,6 +251,22 @@ impl Bitwise for [u8] {
     #[inline]
     fn bit_all_one(&self) -> bool {
         self.iter().all(|&b| b == 0xff)
+    }
+
+    #[inline]
+    fn bit_leading_zeros(&self) -> usize {
+        match self.iter().position(|&b| b != 0) {
+            Some(n) => n * 8 + self[n].leading_zeros() as usize,
+            None => self.len() * 8,
+        }
+    }
+
+    #[inline]
+    fn bit_trailing_zeros(&self) -> usize {
+        match self.iter().rposition(|&b| b != 0) {
+            Some(n) => (self.len() - 1 - n) * 8 + self[n].trailing_zeros() as usize,
+            None => self.len() * 8,
+        }
     }
 }
 
@@ -286,30 +287,5 @@ mod test_offset {
         assert_eq!(data.bit_shr(4), false);
         assert_eq!(data, [0b0000_1111, 0b1111_0000]);
         assert_eq!([0b1].bit_shr(1), true);
-    }
-
-    #[test]
-    fn test_bit_cmp() {
-        const A: [u8; 2] = [0b0011_0011, 0b0011_0011];
-        const B: [u8; 2] = [0b1111_1111, 0b0000_0000];
-        const C: [u8; 2] = [0b0000_0000, 0b1111_1111];
-
-        let (a, b, c) = (
-            u16::from_le_bytes(A),
-            u16::from_le_bytes(B),
-            u16::from_le_bytes(C),
-        );
-        println!("a: {a:016b} = {a}, b: {b:016b} = {b}, c: {c:016b} = {c}");
-        assert_eq!(a.cmp(&b), A.as_ref().bit_le_cmp(&B));
-        assert_eq!(a.cmp(&c), A.as_ref().bit_le_cmp(&C));
-
-        let (a, b, c) = (
-            u16::from_be_bytes(A),
-            u16::from_be_bytes(B),
-            u16::from_be_bytes(C),
-        );
-        println!("a: {a:016b} = {a}, b: {b:016b} = {b}, c: {c:016b} = {c}");
-        assert_eq!(a.cmp(&b), A.as_ref().bit_be_cmp(&B));
-        assert_eq!(a.cmp(&c), A.as_ref().bit_be_cmp(&C));
     }
 }
