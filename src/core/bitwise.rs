@@ -211,11 +211,7 @@ impl Bitwise for [u8] {
         self.iter_mut()
             .rev()
             .zip(other.iter().rev().chain(std::iter::repeat(&0)))
-            .for_each(|(a, b)| {
-                println!("a: {:08b}, b: {:08b}", a, b);
-                println!("v: {:08b}", *a ^ *b);
-                *a ^= *b
-            });
+            .for_each(|(a, b)| *a ^= *b);
         self
     }
 
