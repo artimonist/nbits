@@ -2,7 +2,6 @@
 
 mod arith;
 mod bitwise;
-mod convert;
 mod offset;
 
 use arith::{bits_add_overflow, bits_sub_overflow};

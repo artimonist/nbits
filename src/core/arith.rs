@@ -7,6 +7,30 @@ use super::Bitwise;
 pub trait Arithmetic {
     type Other: ?Sized;
 
+    /// Comparison for big-endian
+    /// # Examples
+    /// ```
+    /// # use nbits::Arithmetic;
+    /// # use std::cmp::Ordering;
+    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_cmp(&[0b1111_1111]), Ordering::Greater);
+    /// assert_eq!([0b0000_0000, 0b0011_0011].bit_be_cmp(&[0b1111_1111]), Ordering::Less);
+    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_cmp(&[0b0000_0000, 0b1111_1111]), Ordering::Greater);
+    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_cmp(&[0b1111_1111, 0b0000_0000]), Ordering::Less);
+    /// ```
+    fn bit_be_cmp(&self, other: &Self) -> std::cmp::Ordering;
+
+    /// Comparison for little-endian
+    /// # Examples
+    /// ```
+    /// # use nbits::Arithmetic;
+    /// # use std::cmp::Ordering;
+    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_le_cmp(&[0b1111_1111]), Ordering::Greater);
+    /// assert_eq!([0b0011_0011, 0b0000_0000].bit_le_cmp(&[0b1111_1111]), Ordering::Less);
+    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_le_cmp(&[0b0000_0000, 0b1111_1111]), Ordering::Less);
+    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_le_cmp(&[0b1111_1111, 0b0000_0000]), Ordering::Greater);
+    /// ```
+    fn bit_le_cmp(&self, other: &Self) -> std::cmp::Ordering;
+
     /// Bit arithmetic operator `+=` for big-endian
     /// # Example
     /// ```
@@ -101,30 +125,6 @@ pub trait Arithmetic {
     /// ```
     fn bit_be_rem(&mut self, other: &Self::Other) -> bool;
     fn bit_le_rem(&mut self, other: &Self::Other) -> bool;
-
-    /// Comparison for big-endian
-    /// # Examples
-    /// ```
-    /// # use nbits::Arithmetic;
-    /// # use std::cmp::Ordering;
-    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_cmp(&[0b1111_1111]), Ordering::Greater);
-    /// assert_eq!([0b0000_0000, 0b0011_0011].bit_be_cmp(&[0b1111_1111]), Ordering::Less);
-    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_cmp(&[0b0000_0000, 0b1111_1111]), Ordering::Greater);
-    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_cmp(&[0b1111_1111, 0b0000_0000]), Ordering::Less);
-    /// ```
-    fn bit_be_cmp(&self, other: &Self) -> std::cmp::Ordering;
-
-    /// Comparison for little-endian
-    /// # Examples
-    /// ```
-    /// # use nbits::Arithmetic;
-    /// # use std::cmp::Ordering;
-    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_le_cmp(&[0b1111_1111]), Ordering::Greater);
-    /// assert_eq!([0b0011_0011, 0b0000_0000].bit_le_cmp(&[0b1111_1111]), Ordering::Less);
-    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_le_cmp(&[0b0000_0000, 0b1111_1111]), Ordering::Less);
-    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_le_cmp(&[0b1111_1111, 0b0000_0000]), Ordering::Greater);
-    /// ```
-    fn bit_le_cmp(&self, other: &Self) -> std::cmp::Ordering;
 }
 
 impl Arithmetic for [u8] {
@@ -288,30 +288,30 @@ impl Arithmetic for [u8] {
 
     fn bit_be_cmp(&self, other: &Self) -> std::cmp::Ordering {
         let max_len = std::cmp::max(self.len(), other.len());
-        self.be_iter_n(max_len).cmp(other.be_iter_n(max_len))
+        self.iter_be_n(max_len).cmp(other.iter_be_n(max_len))
     }
 
     fn bit_le_cmp(&self, other: &Self) -> std::cmp::Ordering {
         let max_len = std::cmp::max(self.len(), other.len());
-        self.le_iter_n(max_len)
+        self.iter_le_n(max_len)
             .rev()
-            .cmp(other.le_iter_n(max_len).rev())
+            .cmp(other.iter_le_n(max_len).rev())
     }
 }
 
 trait ByteIter {
-    fn be_iter_n(&self, n: usize) -> impl DoubleEndedIterator<Item = &u8>;
-    fn le_iter_n(&self, n: usize) -> impl DoubleEndedIterator<Item = &u8>;
+    fn iter_be_n(&self, n: usize) -> impl DoubleEndedIterator<Item = &u8>;
+    fn iter_le_n(&self, n: usize) -> impl DoubleEndedIterator<Item = &u8>;
 }
 
 impl ByteIter for [u8] {
     #[inline(always)]
-    fn be_iter_n(&self, n: usize) -> impl DoubleEndedIterator<Item = &u8> {
+    fn iter_be_n(&self, n: usize) -> impl DoubleEndedIterator<Item = &u8> {
         std::iter::repeat_n(&0, n - self.len()).chain(self.iter())
     }
 
     #[inline(always)]
-    fn le_iter_n(&self, n: usize) -> impl DoubleEndedIterator<Item = &u8> {
+    fn iter_le_n(&self, n: usize) -> impl DoubleEndedIterator<Item = &u8> {
         self.iter().chain(std::iter::repeat_n(&0, n - self.len()))
     }
 }

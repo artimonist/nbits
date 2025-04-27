@@ -157,30 +157,6 @@ impl FromBits for Vec<u8> {
     }
 }
 
-impl<const N: usize> FromBits for [u8; N] {
-    fn from_bits<U>(bits: U) -> Self
-    where
-        U: Iterator<Item = bool>,
-    {
-        let mut result = [0; N];
-        bits.take(N * 8).enumerate().for_each(|(i, bit)| {
-            if bit {
-                let (n, m) = (i / 8, i % 8);
-                result[n] |= 1 << (7 - m);
-            }
-        });
-        result
-    }
-
-    fn from_chunks<T, U>(_chunks: U, _n: usize) -> Self
-    where
-        T: TryInto<u64>,
-        U: Iterator<Item = T>,
-    {
-        todo!()
-    }
-}
-
 trait ByteWindow {
     // get window value from bytes. If insufficient, tail padding zero
     fn byte_window_64(&self, byte_index: usize) -> u64;

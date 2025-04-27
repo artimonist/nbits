@@ -36,6 +36,16 @@ impl BitsRef<'_> {
     }
 
     #[inline(always)]
+    pub fn leading_zeros(&self) -> usize {
+        self.0.bit_leading_zeros()
+    }
+
+    #[inline(always)]
+    pub fn trailing_zeros(&self) -> usize {
+        self.0.bit_trailing_zeros()
+    }
+
+    #[inline(always)]
     pub fn iter(&self) -> impl DoubleEndedIterator<Item = bool> + '_ {
         self.0.bit_iter()
     }
@@ -52,6 +62,58 @@ impl BitsRef<'_> {
 impl BitsMut<'_> {
     pub fn as_ref(&self) -> BitsRef {
         BitsRef(self.0)
+    }
+
+    #[inline(always)]
+    pub fn shl_overflow(&mut self, n: usize) -> bool {
+        self.0.bit_shl(n)
+    }
+
+    #[inline(always)]
+    pub fn shr_overflow(&mut self, n: usize) -> bool {
+        self.0.bit_shr(n)
+    }
+
+    #[inline(always)]
+    pub fn shl(&mut self, n: usize) -> &mut Self {
+        self.0.bit_shl(n);
+        self
+    }
+
+    #[inline(always)]
+    pub fn shr(&mut self, n: usize) -> &mut Self {
+        self.0.bit_shr(n);
+        self
+    }
+
+    #[inline(always)]
+    pub fn or(&mut self, other: &BitsRef) -> &mut Self {
+        self.0.bit_be_or(other.0);
+        self
+    }
+
+    #[inline(always)]
+    pub fn and(&mut self, other: &BitsRef) -> &mut Self {
+        self.0.bit_be_and(other.0);
+        self
+    }
+
+    #[inline(always)]
+    pub fn xor(&mut self, other: &BitsRef) -> &mut Self {
+        self.0.bit_be_xor(other.0);
+        self
+    }
+
+    #[inline(always)]
+    pub fn not(&mut self) -> &mut Self {
+        self.0.bit_not();
+        self
+    }
+
+    #[inline(always)]
+    pub fn reverse(&mut self) -> &mut Self {
+        self.0.bit_reverse();
+        self
     }
 }
 
