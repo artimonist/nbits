@@ -7,7 +7,7 @@ pub trait BitIterator {
     /// Iterator bits
     /// # Examples
     /// ```
-    /// # use nbits::Iterator;
+    /// # use nbits::BitIterator;
     /// assert_eq!(
     ///   [0b1111_0000_u8].bit_iter().collect::<Vec<bool>>(),
     ///   vec![true, true, true, true, false, false, false, false]
@@ -24,7 +24,7 @@ pub trait BitIterator {
     ///   
     /// # Examples  
     /// ```
-    /// # use nbits::Iterator;
+    /// # use nbits::BitIterator;
     /// assert_eq!(
     ///     vec![0b1111_1111, 0b1111_1111].bit_chunks(6).collect::<Vec<u8>>(),
     ///     vec![0b11_1111, 0b11_1111, 0b11_1100]

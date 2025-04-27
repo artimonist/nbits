@@ -6,7 +6,7 @@
 //!
 //! # Examples
 //! ```
-//! use nbits::{BitChunks, BitConjoin, BitIterator, ToBits};
+//! use nbits::{BitIterator, FromBits};
 //!
 //! // BitChunks
 //! assert_eq!(
@@ -20,11 +20,11 @@
 //!
 //! // BitConjoin
 //! assert_eq!(
-//!     vec![0b11_1111_u8, 0b11_1111, 0b11_1111].bit_conjoin(6),
+//!     Vec::from_chunks([0b11_1111_u8, 0b11_1111, 0b11_1111].into_iter(), 6),
 //!     vec![0b1111_1111, 0b1111_1111, 0b1100_0000]
 //! );
 //! assert_eq!(
-//!     vec![0b1111_u16, 0b1111, 0b1111].bit_conjoin(6),
+//!     Vec::from_chunks([0b1111_u16, 0b1111, 0b1111].into_iter(), 6),
 //!     vec![0b001111_00, 0b1111_0011, 0b1100_0000]
 //! );
 //!
@@ -36,20 +36,18 @@
 //!
 //! // ToBits
 //! assert_eq!(
-//!     vec![true, true, true, true, false, false, false, false].iter().to_bits(),
+//!     Vec::from_bits([true, true, true, true, false, false, false, false].iter().copied()),
 //!     [0b1111_0000]
 //! );
 //! ```
 
-mod chunk;
 mod core;
-mod iter;
 mod nbits;
+mod xbits;
 
-pub use chunk::*;
 pub use core::*;
-pub use iter::{BitIterator, ToBits};
 pub use nbits::*;
+pub use xbits::*;
 
 /// Assert overflow of parameter
 /// # Parameters

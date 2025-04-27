@@ -1,12 +1,12 @@
 #![cfg(test)]
 
-use nbits::{BitChunks, BitConjoin, BitIterator, ToBits};
+use nbits::{BitIterator, FromBits};
 
 #[test]
 fn test_bit_iter() {
     for (i, &data) in DATA_LIST.iter().enumerate() {
         assert_eq!(data.bit_iter().collect::<Vec<_>>(), BITS_LIST[i]);
-        assert_eq!(BITS_LIST[i].iter().to_bits(), *data);
+        assert_eq!(Vec::from_bits(BITS_LIST[i].iter().copied()), *data);
     }
 }
 
@@ -78,11 +78,11 @@ fn test_doc() {
     );
 
     assert_eq!(
-        vec![0b11_1111_u8, 0b11_1111, 0b11_1111].bit_conjoin(6),
+        Vec::from_chunks([0b11_1111_u8, 0b11_1111, 0b11_1111].into_iter(), 6),
         vec![0b1111_1111, 0b1111_1111, 0b1100_0000]
     );
     assert_eq!(
-        vec![0b1111_u16, 0b1111, 0b1111].bit_conjoin(6),
+        Vec::from_chunks([0b1111_u16, 0b1111, 0b1111].into_iter(), 6),
         vec![0b001111_00, 0b1111_0011, 0b1100_0000]
     );
 
@@ -91,9 +91,11 @@ fn test_doc() {
         vec![true, true, true, true, false, false, false, false]
     );
     assert_eq!(
-        vec![true, true, true, true, false, false, false, false]
-            .iter()
-            .to_bits(),
+        Vec::from_bits(
+            [true, true, true, true, false, false, false, false]
+                .iter()
+                .copied()
+        ),
         [0b1111_0000]
     );
 }

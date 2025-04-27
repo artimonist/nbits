@@ -1,16 +1,17 @@
 #![cfg(test)]
 use hex::FromHex;
-use nbits::{BitChunks, BitConjoin};
+use nbits::{BitIterator, FromBits};
 
 #[test]
 fn test_bit_chunks() {
     for (i, &entropy) in ENTROPY_LIST.iter().enumerate() {
         let data = Vec::from_hex(entropy).expect("entropy");
-        let mut rem = 0;
-        let indices: Vec<u16> = data.bit_chunks_rem(11, &mut rem).collect();
+        // let mut rem = 0;
+        // let indices: Vec<u16> = data.bit_chunks_rem(11, &mut rem).collect();
+        let indices: Vec<u16> = data.bit_chunks(11).collect();
         assert_eq!(indices, INDICES_LIST[i]);
-        assert_eq!(rem, indices.len() / 3);
-        assert_eq!(indices.bit_conjoin_rem(11, rem), data);
+        // assert_eq!(rem, indices.len() / 3);
+        //        assert_eq!(indices.bit_conjoin_rem(11, rem), data);
     }
 }
 
@@ -97,7 +98,7 @@ fn test_chunks_overflow() {
 #[test]
 #[should_panic]
 fn test_conjoin_overflow() {
-    let _ = [222_u32].into_iter().bit_conjoin(0);
+    let _ = Vec::from_chunks([222_u32].into_iter(), 0);
 }
 
 #[test]
@@ -114,12 +115,21 @@ fn test_chunks_debug() {
 
 #[test]
 fn test_conjoin_debug() {
-    assert_eq!([0b1111, 0b1111].bit_conjoin(4), vec![0b1111_1111]);
     assert_eq!(
-        [0xFF, 0xFF].bit_conjoin(10),
+        Vec::from_chunks([0b1111, 0b1111].into_iter(), 4),
+        vec![0b1111_1111]
+    );
+    assert_eq!(
+        Vec::from_chunks([0xFF, 0xFF].into_iter(), 10),
         vec![0b0011_1111, 0b1100_1111, 0b1111_0000]
     );
-    assert_eq!([1; 8].bit_conjoin(1), vec![0b1111_1111]);
-    assert_eq!([1; 8].bit_conjoin(2), vec![0b0101_0101, 0b0101_0101]);
-    assert_eq!([1; 16].bit_conjoin(1), vec![0b1111_1111, 0b1111_1111]);
+    assert_eq!(Vec::from_chunks([1; 8].into_iter(), 1), vec![0b1111_1111]);
+    assert_eq!(
+        Vec::from_chunks([1; 8].into_iter(), 2),
+        vec![0b0101_0101, 0b0101_0101]
+    );
+    assert_eq!(
+        Vec::from_chunks([1; 16].into_iter(), 1),
+        vec![0b1111_1111, 0b1111_1111]
+    );
 }

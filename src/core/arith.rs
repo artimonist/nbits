@@ -1,5 +1,5 @@
+use super::BitIterator;
 use super::Bitwise;
-use super::Iterator;
 
 /**
  * Arithmetic operations for [u8]

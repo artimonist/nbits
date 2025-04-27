@@ -4,4 +4,4 @@ mod iter;
 
 pub use arith::Arithmetic;
 pub use bitwise::Bitwise;
-pub use iter::{BitIterator as Iterator, FromBits};
+pub use iter::{BitIterator, FromBits};

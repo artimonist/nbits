@@ -1,6 +1,6 @@
-use crate::nbits::bits_shl;
-
 use super::Bits;
+use crate::nbits::bits_shl;
+use crate::BitIterator;
 use std::ops::Add;
 
 pub fn bits_add_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
@@ -30,7 +30,6 @@ pub fn bits_sub_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
 }
 
 pub fn bits_mul_overflow<const N: usize>(x: &mut [u8; N], y: &[u8; N]) -> bool {
-    use crate::Iterator;
     let mut overflow = false;
     *x = y.bit_iter().rev().fold([0; N], |mut acc, bit| {
         if bit {
