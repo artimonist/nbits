@@ -4,7 +4,7 @@ use super::Bitwise;
 /**
  * Arithmetic operations for [u8]
  */
-pub trait Arithmetic {
+pub trait BitArith {
     type Other: ?Sized;
 
     /// Comparison for big-endian
@@ -127,7 +127,7 @@ pub trait Arithmetic {
     fn bit_le_rem(&mut self, other: &Self::Other) -> bool;
 }
 
-impl Arithmetic for [u8] {
+impl BitArith for [u8] {
     type Other = Self;
 
     fn bit_be_add(&mut self, other: &Self) -> bool {

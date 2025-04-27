@@ -20,7 +20,7 @@ pub trait BitIterator {
     /// # Parameters  
     /// - `T`: the type to contains the grouped bits  
     /// - `n`: the number of bits to group  
-    /// - 1 <= n <= size_of::<T>() * 8 <= 32
+    /// - 1 <= n <= T::BITS <= 32
     ///   
     /// # Examples  
     /// ```
@@ -89,7 +89,7 @@ pub trait FromBits {
     /// # Parameters
     /// - `n`: the number of bits to conjoin
     /// - 1 <= n <= 32
-    /// - if n > size_of::<T>() * 8, left padding zero bits
+    /// - if n > T::BITS, left padding zero bits
     ///
     /// # Examples
     /// ```
