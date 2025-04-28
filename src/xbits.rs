@@ -5,7 +5,6 @@ use super::core::{BitIterator, Bitwise};
  * It allows you to get a reference to the bits in a byte array and perform operations
  * such as checking if all bits are one or zero, and iterating over the bits.
  */
-#[allow(unused)]
 pub trait XBits {
     fn bits(&self) -> BitsRef;
     fn bits_mut(&mut self) -> BitsMut;
@@ -21,8 +20,6 @@ impl XBits for [u8] {
 }
 
 pub struct BitsRef<'a>(&'a [u8]);
-
-pub struct BitsMut<'a>(&'a mut [u8]);
 
 impl BitsRef<'_> {
     #[inline(always)]
@@ -59,6 +56,8 @@ impl BitsRef<'_> {
     }
 }
 
+pub struct BitsMut<'a>(&'a mut [u8]);
+
 impl BitsMut<'_> {
     pub fn as_ref(&self) -> BitsRef {
         BitsRef(self.0)
@@ -87,20 +86,38 @@ impl BitsMut<'_> {
     }
 
     #[inline(always)]
-    pub fn or(&mut self, other: &BitsRef) -> &mut Self {
+    pub fn or(&mut self, other: BitsRef) -> &mut Self {
         self.0.bit_be_or(other.0);
         self
     }
 
     #[inline(always)]
-    pub fn and(&mut self, other: &BitsRef) -> &mut Self {
+    pub fn and(&mut self, other: BitsRef) -> &mut Self {
         self.0.bit_be_and(other.0);
         self
     }
 
     #[inline(always)]
-    pub fn xor(&mut self, other: &BitsRef) -> &mut Self {
+    pub fn xor(&mut self, other: BitsRef) -> &mut Self {
         self.0.bit_be_xor(other.0);
+        self
+    }
+
+    #[inline(always)]
+    pub fn bit_or<U: Into<u64>>(&mut self, other: U) -> &mut Self {
+        self.0.bit_be_or(&other.into().to_be_bytes());
+        self
+    }
+
+    #[inline(always)]
+    pub fn bit_and<U: Into<u64>>(&mut self, other: U) -> &mut Self {
+        self.0.bit_be_and(&other.into().to_be_bytes());
+        self
+    }
+
+    #[inline(always)]
+    pub fn bit_xor<U: Into<u64>>(&mut self, other: U) -> &mut Self {
+        self.0.bit_be_xor(&other.into().to_be_bytes());
         self
     }
 
@@ -125,6 +142,6 @@ mod tests {
     fn test_bits() {
         let mut bits = [0b00000001_u8, 0b00000010, 0b00000100];
         let _xbits = bits.bits();
-        let _xbits = bits.bits_mut();
+        let _xbits = bits[0..2].bits_mut().or(1024_u16.to_be_bytes().bits());
     }
 }
