@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use nbits::Bits;
+use nbits::NBits as Bits;
 
 #[test]
 fn test_bits_offset() {

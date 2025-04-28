@@ -1,0 +1,192 @@
+use super::core::{BitArith, Bitwise};
+
+/**
+ *  `NBits` is a wrapper around an array of bytes that provides
+ *  arithmetic and bitwise operations on the bits represented
+ *  by the bytes. The operations are performed in big-endian
+ *  order.
+ */
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct NBits<const N: usize>(pub [u8; N]);
+
+impl<const N: usize> NBits<N> {
+    /// Creates a new `NBits` instance with all bits set to 0.
+    pub fn new() -> Self {
+        Self([0; N])
+    }
+}
+
+impl<const N: usize> Default for NBits<N> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<const N: usize> std::ops::Add<&NBits<N>> for NBits<N> {
+    type Output = Self;
+
+    fn add(mut self, other: &Self) -> Self::Output {
+        let overflow = self.0.bit_be_add(&other.0);
+        assert!(!overflow, "[nbits] Overflow in `add`");
+        self
+    }
+}
+
+impl<const N: usize> std::ops::Sub<&NBits<N>> for NBits<N> {
+    type Output = Self;
+
+    fn sub(mut self, other: &Self) -> Self::Output {
+        let overflow = self.0.bit_be_sub(&other.0);
+        assert!(!overflow, "[nbits] Overflow in `sub`");
+        self
+    }
+}
+
+impl<const N: usize> std::ops::Mul<&NBits<N>> for NBits<N> {
+    type Output = Self;
+
+    fn mul(mut self, other: &Self) -> Self::Output {
+        let overflow = self.0.bit_be_mul(&other.0);
+        assert!(!overflow, "[nbits] Overflow in `mul`");
+        self
+    }
+}
+
+impl<const N: usize> std::ops::Div<&NBits<N>> for NBits<N> {
+    type Output = Self;
+
+    fn div(mut self, other: &Self) -> Self::Output {
+        let overflow = self.0.bit_be_div(&other.0);
+        assert!(!overflow, "[nbits] Overflow in `div`");
+        self
+    }
+}
+
+impl<const N: usize> std::ops::Rem<&NBits<N>> for NBits<N> {
+    type Output = Self;
+
+    fn rem(mut self, other: &Self) -> Self::Output {
+        let overflow = self.0.bit_be_rem(&other.0);
+        assert!(!overflow, "[nbits] Overflow in `rem`");
+        self
+    }
+}
+
+impl<const N: usize> std::ops::AddAssign<&NBits<N>> for NBits<N> {
+    fn add_assign(&mut self, other: &Self) {
+        let overflow = self.0.bit_be_add(&other.0);
+        assert!(!overflow, "[nbits] Overflow in `add_assign`");
+    }
+}
+
+impl<const N: usize> std::ops::SubAssign<&NBits<N>> for NBits<N> {
+    fn sub_assign(&mut self, other: &Self) {
+        let overflow = self.0.bit_be_sub(&other.0);
+        assert!(!overflow, "[nbits] Overflow in `sub_assign`");
+    }
+}
+
+impl<const N: usize> std::ops::MulAssign<&NBits<N>> for NBits<N> {
+    fn mul_assign(&mut self, other: &Self) {
+        let overflow = self.0.bit_be_mul(&other.0);
+        assert!(!overflow, "[nbits] Overflow in `mul_assign`");
+    }
+}
+
+impl<const N: usize> std::ops::DivAssign<&NBits<N>> for NBits<N> {
+    fn div_assign(&mut self, other: &Self) {
+        let overflow = self.0.bit_be_div(&other.0);
+        assert!(!overflow, "[nbits] Overflow in `div_assign`");
+    }
+}
+
+impl<const N: usize> std::ops::RemAssign<&NBits<N>> for NBits<N> {
+    fn rem_assign(&mut self, other: &Self) {
+        let overflow = self.0.bit_be_rem(&other.0);
+        assert!(!overflow, "[nbits] Overflow in `rem_assign`");
+    }
+}
+
+impl<const N: usize> std::ops::BitAnd<&NBits<N>> for NBits<N> {
+    type Output = Self;
+
+    fn bitand(mut self, other: &Self) -> Self::Output {
+        self.0.bit_be_and(&other.0);
+        self
+    }
+}
+
+impl<const N: usize> std::ops::BitOr<&NBits<N>> for NBits<N> {
+    type Output = Self;
+
+    fn bitor(mut self, other: &Self) -> Self::Output {
+        self.0.bit_be_or(&other.0);
+        self
+    }
+}
+
+impl<const N: usize> std::ops::BitXor<&NBits<N>> for NBits<N> {
+    type Output = Self;
+
+    fn bitxor(mut self, other: &Self) -> Self::Output {
+        self.0.bit_be_xor(&other.0);
+        self
+    }
+}
+
+impl<const N: usize> std::ops::Shl<usize> for NBits<N> {
+    type Output = Self;
+
+    fn shl(mut self, rhs: usize) -> Self::Output {
+        self.0.bit_shl(rhs);
+        self
+    }
+}
+
+impl<const N: usize> std::ops::Shr<usize> for NBits<N> {
+    type Output = Self;
+
+    fn shr(mut self, rhs: usize) -> Self::Output {
+        self.0.bit_shr(rhs);
+        self
+    }
+}
+
+impl<const N: usize> std::ops::BitAndAssign<&NBits<N>> for NBits<N> {
+    fn bitand_assign(&mut self, other: &Self) {
+        self.0.bit_be_and(&other.0);
+    }
+}
+
+impl<const N: usize> std::ops::BitOrAssign<&NBits<N>> for NBits<N> {
+    fn bitor_assign(&mut self, other: &Self) {
+        self.0.bit_be_or(&other.0);
+    }
+}
+
+impl<const N: usize> std::ops::BitXorAssign<&NBits<N>> for NBits<N> {
+    fn bitxor_assign(&mut self, other: &Self) {
+        self.0.bit_be_xor(&other.0);
+    }
+}
+
+impl<const N: usize> std::ops::Not for NBits<N> {
+    type Output = Self;
+
+    fn not(mut self) -> Self::Output {
+        self.0.bit_not();
+        self
+    }
+}
+
+impl<const N: usize> std::ops::ShlAssign<usize> for NBits<N> {
+    fn shl_assign(&mut self, rhs: usize) {
+        self.0.bit_shl(rhs);
+    }
+}
+
+impl<const N: usize> std::ops::ShrAssign<usize> for NBits<N> {
+    fn shr_assign(&mut self, rhs: usize) {
+        self.0.bit_shr(rhs);
+    }
+}

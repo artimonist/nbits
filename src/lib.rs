@@ -45,9 +45,9 @@ mod core;
 mod nbits;
 mod xbits;
 
-pub use core::*;
-pub use nbits::*;
-pub use xbits::*;
+pub use core::{BitArith, BitIterator, Bitwise, FromBits};
+pub use nbits::NBits;
+pub use xbits::XBits;
 
 /// Assert overflow of parameter
 /// # Parameters
