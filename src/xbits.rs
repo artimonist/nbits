@@ -1,4 +1,4 @@
-use super::core::{BitArith, BitIterator, Bitwise};
+use super::core::{BitIterator, Bitwise};
 
 /**
  * `XBits` trait provides a way to work with bit-level operations on byte arrays.
@@ -57,12 +57,6 @@ impl BitsRef<'_> {
     {
         self.0.bit_chunks(n)
     }
-
-    #[allow(clippy::should_implement_trait)]
-    #[inline(always)]
-    pub fn cmp(&self, other: &BitsRef) -> std::cmp::Ordering {
-        self.0.bit_be_cmp(other.0)
-    }
 }
 
 impl BitsMut<'_> {
@@ -119,36 +113,6 @@ impl BitsMut<'_> {
     #[inline(always)]
     pub fn reverse(&mut self) -> &mut Self {
         self.0.bit_reverse();
-        self
-    }
-
-    #[inline(always)]
-    pub fn add(&mut self, other: &BitsRef) -> &mut Self {
-        self.0.bit_be_add(other.0);
-        self
-    }
-
-    #[inline(always)]
-    pub fn sub(&mut self, other: &BitsRef) -> &mut Self {
-        self.0.bit_be_sub(other.0);
-        self
-    }
-
-    #[inline(always)]
-    pub fn mul(&mut self, other: &BitsRef) -> &mut Self {
-        self.0.bit_be_mul(other.0);
-        self
-    }
-
-    #[inline(always)]
-    pub fn div(&mut self, other: &BitsRef) -> &mut Self {
-        self.0.bit_be_div(other.0);
-        self
-    }
-
-    #[inline(always)]
-    pub fn rem(&mut self, other: &BitsRef) -> &mut Self {
-        self.0.bit_be_rem(other.0);
         self
     }
 }
