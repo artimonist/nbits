@@ -95,15 +95,15 @@ pub trait FromBits {
     /// ```
     /// # use nbits::FromBits;
     /// assert_eq!(
-    ///     Vec::from_chunks([0b11_1111_u8, 0b11_1111, 0b11_1111].into_iter(),6),
+    ///     Vec::from_bits_n([0b11_1111_u8, 0b11_1111, 0b11_1111].into_iter(),6),
     ///     vec![0b1111_1111, 0b1111_1111, 0b1100_0000]
     /// );
     /// assert_eq!(
-    ///     Vec::from_chunks([0b1111_u16, 0b1111, 0b1111].into_iter(), 6),
+    ///     Vec::from_bits_n([0b1111_u16, 0b1111, 0b1111].into_iter(), 6),
     ///     vec![0b001111_00, 0b1111_0011, 0b1100_0000]
     /// );
     /// ```
-    fn from_chunks<T, U>(chunks: U, n: usize) -> Self
+    fn from_bits_n<T, U>(chunks: U, n: usize) -> Self
     where
         T: TryInto<u64>,
         U: Iterator<Item = T>;
@@ -130,7 +130,7 @@ impl FromBits for Vec<u8> {
             .collect()
     }
 
-    fn from_chunks<T, U>(chunks: U, n: usize) -> Vec<u8>
+    fn from_bits_n<T, U>(chunks: U, n: usize) -> Vec<u8>
     where
         T: TryInto<u64>,
         U: Iterator<Item = T>,
