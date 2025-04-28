@@ -24,6 +24,16 @@ impl<const N: usize> Default for NBits<N> {
     }
 }
 
+impl<const N: usize> std::fmt::Display for NBits<N> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut s = String::new();
+        for byte in self.0.iter() {
+            s.push_str(&format!("{:08b} ", byte));
+        }
+        write!(f, "{}", s)
+    }
+}
+
 impl<const N: usize> std::ops::Add<&NBits<N>> for NBits<N> {
     type Output = Self;
 
@@ -211,5 +221,100 @@ impl<const N: usize> std::ops::ShrAssign<usize> for NBits<N> {
     #[inline(always)]
     fn shr_assign(&mut self, rhs: usize) {
         self.0.bit_shr(rhs);
+    }
+}
+
+impl<const N: usize, U: Into<u64>> std::ops::Add<U> for NBits<N> {
+    type Output = Self;
+
+    #[inline(always)]
+    fn add(mut self, other: U) -> Self::Output {
+        let overflow = self.0.bit_be_add(&other.into().to_be_bytes());
+        assert!(!overflow, "[nbits] Overflow in `add`");
+        self
+    }
+}
+
+impl<const N: usize, U: Into<u64>> std::ops::Sub<U> for NBits<N> {
+    type Output = Self;
+
+    #[inline(always)]
+    fn sub(mut self, other: U) -> Self::Output {
+        let overflow = self.0.bit_be_sub(&other.into().to_be_bytes());
+        assert!(!overflow, "[nbits] Overflow in `sub`");
+        self
+    }
+}
+
+impl<const N: usize, U: Into<u64>> std::ops::Mul<U> for NBits<N> {
+    type Output = Self;
+
+    #[inline(always)]
+    fn mul(mut self, other: U) -> Self::Output {
+        let overflow = self.0.bit_be_mul(&other.into().to_be_bytes());
+        assert!(!overflow, "[nbits] Overflow in `mul`");
+        self
+    }
+}
+
+impl<const N: usize, U: Into<u64>> std::ops::Div<U> for NBits<N> {
+    type Output = Self;
+
+    #[inline(always)]
+    fn div(mut self, other: U) -> Self::Output {
+        let overflow = self.0.bit_be_div(&other.into().to_be_bytes());
+        assert!(!overflow, "[nbits] Overflow in `div`");
+        self
+    }
+}
+
+impl<const N: usize, U: Into<u64>> std::ops::Rem<U> for NBits<N> {
+    type Output = Self;
+
+    #[inline(always)]
+    fn rem(mut self, other: U) -> Self::Output {
+        let overflow = self.0.bit_be_rem(&other.into().to_be_bytes());
+        assert!(!overflow, "[nbits] Overflow in `rem`");
+        self
+    }
+}
+
+impl<const N: usize, U: Into<u64>> std::ops::AddAssign<U> for NBits<N> {
+    #[inline(always)]
+    fn add_assign(&mut self, other: U) {
+        let overflow = self.0.bit_be_add(&other.into().to_be_bytes());
+        assert!(!overflow, "[nbits] Overflow in `add_assign`");
+    }
+}
+
+impl<const N: usize, U: Into<u64>> std::ops::SubAssign<U> for NBits<N> {
+    #[inline(always)]
+    fn sub_assign(&mut self, other: U) {
+        let overflow = self.0.bit_be_sub(&other.into().to_be_bytes());
+        assert!(!overflow, "[nbits] Overflow in `sub_assign`");
+    }
+}
+
+impl<const N: usize, U: Into<u64>> std::ops::MulAssign<U> for NBits<N> {
+    #[inline(always)]
+    fn mul_assign(&mut self, other: U) {
+        let overflow = self.0.bit_be_mul(&other.into().to_be_bytes());
+        assert!(!overflow, "[nbits] Overflow in `mul_assign`");
+    }
+}
+
+impl<const N: usize, U: Into<u64>> std::ops::DivAssign<U> for NBits<N> {
+    #[inline(always)]
+    fn div_assign(&mut self, other: U) {
+        let overflow = self.0.bit_be_div(&other.into().to_be_bytes());
+        assert!(!overflow, "[nbits] Overflow in `div_assign`");
+    }
+}
+
+impl<const N: usize, U: Into<u64>> std::ops::RemAssign<U> for NBits<N> {
+    #[inline(always)]
+    fn rem_assign(&mut self, other: U) {
+        let overflow = self.0.bit_be_rem(&other.into().to_be_bytes());
+        assert!(!overflow, "[nbits] Overflow in `rem_assign`");
     }
 }
