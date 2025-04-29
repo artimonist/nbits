@@ -19,18 +19,6 @@ pub trait BitArith {
     /// ```
     fn bit_be_cmp(&self, other: &Self) -> std::cmp::Ordering;
 
-    /// Comparison for little-endian
-    /// # Examples
-    /// ```
-    /// # use nbits::BitArith;
-    /// # use std::cmp::Ordering;
-    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_le_cmp(&[0b1111_1111]), Ordering::Greater);
-    /// assert_eq!([0b0011_0011, 0b0000_0000].bit_le_cmp(&[0b1111_1111]), Ordering::Less);
-    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_le_cmp(&[0b0000_0000, 0b1111_1111]), Ordering::Less);
-    /// assert_eq!([0b0011_0011, 0b0011_0011].bit_le_cmp(&[0b1111_1111, 0b0000_0000]), Ordering::Greater);
-    /// ```
-    fn bit_le_cmp(&self, other: &Self) -> std::cmp::Ordering;
-
     /// Bit arithmetic operator `+=` for big-endian
     /// # Example
     /// ```
@@ -40,16 +28,6 @@ pub trait BitArith {
     /// assert_eq!(a, [0b1100_1101, 0b0000_0010]);
     /// ```
     fn bit_be_add(&mut self, other: &Self::Other) -> bool;
-
-    /// Bit arithmetic operator `+=` for little-endian
-    /// # Example
-    /// ```
-    /// # use nbits::BitArith;
-    /// let (mut a, b) = ([ 0b1000_0001, 0b1100_1100], [0b1000_0001]);
-    /// assert_eq!(a.as_mut().bit_le_add(&b), false);
-    /// assert_eq!(a, [0b0000_0010, 0b1100_1101]);
-    /// ```
-    fn bit_le_add(&mut self, other: &Self::Other) -> bool;
 
     /// Bit arithmetic operator `-=` for big-endian
     /// # Example
@@ -61,16 +39,6 @@ pub trait BitArith {
     /// ```
     fn bit_be_sub(&mut self, other: &Self::Other) -> bool;
 
-    /// Bit arithmetic operator `-=` for little-endian
-    /// # Example
-    /// ```
-    /// # use nbits::BitArith;
-    /// let (mut a, b) = ([0b1000_0001, 0b0000_0001], [0b1000_0010]);
-    /// assert_eq!(a.as_mut().bit_le_sub(&b), false);
-    /// assert_eq!(a, [0b1111_1111, 0b0000_0000]);
-    /// ```
-    fn bit_le_sub(&mut self, other: &Self::Other) -> bool;
-
     /// Bit arithmetic operator `*=` for big-endian
     /// # Example
     /// ```
@@ -80,16 +48,6 @@ pub trait BitArith {
     /// assert_eq!(a, [0b0110_0001, 0b0000_0010]);
     /// ```
     fn bit_be_mul(&mut self, other: &Self::Other) -> bool;
-
-    /// Bit arithmetic operator `*=` for little-endian
-    /// # Example
-    /// ```
-    /// # use nbits::BitArith;
-    /// let (mut a, b) = ([0b0000_1100, 0b0011_0000], [0b0000_0010, 0b0000_0000]);
-    /// assert_eq!(a.as_mut().bit_le_mul(&b), false);
-    /// assert_eq!(a, [0b0001_1000, 0b0110_0000]);
-    /// ```
-    fn bit_le_mul(&mut self, other: &Self::Other) -> bool;
 
     /// Bit arithmetic operator `/=` for big-endian
     /// # Example
@@ -102,13 +60,7 @@ pub trait BitArith {
     /// ```
     fn bit_be_div(&mut self, other: &Self::Other) -> bool;
 
-    /// Bit arithmetic operator `/=` for little-endian
-    /// # Example
-    /// ```
-    /// ```
-    fn bit_le_div(&mut self, other: &Self::Other) -> bool;
-
-    /// Bit arithmetic operator `%=`
+    /// Bit arithmetic operator `%=` for big-endian
     /// # Example
     /// ```
     /// # use nbits::BitArith;
@@ -118,7 +70,6 @@ pub trait BitArith {
     /// // assert_eq!(x, (u16::from_be_bytes(a) % u16::from_be_bytes(b)).to_be_bytes());
     /// ```
     fn bit_be_rem(&mut self, other: &Self::Other) -> bool;
-    fn bit_le_rem(&mut self, other: &Self::Other) -> bool;
 }
 
 impl BitArith for [u8] {
@@ -126,33 +77,14 @@ impl BitArith for [u8] {
 
     fn bit_be_cmp(&self, other: &Self) -> std::cmp::Ordering {
         let max_len = std::cmp::max(self.len(), other.len());
-        self.iter_be_n(max_len).cmp(other.iter_be_n(max_len))
-    }
-
-    fn bit_le_cmp(&self, other: &Self) -> std::cmp::Ordering {
-        let max_len = std::cmp::max(self.len(), other.len());
-        self.iter_le_n(max_len)
-            .rev()
-            .cmp(other.iter_le_n(max_len).rev())
+        self.extend_be_iter(max_len)
+            .cmp(other.extend_be_iter(max_len))
     }
 
     fn bit_be_add(&mut self, other: &Self) -> bool {
         self.iter_mut()
             .rev()
             .zip(other.iter().rev().chain(std::iter::repeat(&0)))
-            .fold(false, |mut carry, (a, b)| {
-                match (carry, *b) {
-                    (true, 0xff) => carry = true,
-                    (true, _) => (*a, carry) = a.overflowing_add(b + 1),
-                    (false, _) => (*a, carry) = a.overflowing_add(*b),
-                };
-                carry
-            })
-    }
-
-    fn bit_le_add(&mut self, other: &Self::Other) -> bool {
-        self.iter_mut()
-            .zip(other.iter().chain(std::iter::repeat(&0)))
             .fold(false, |mut carry, (a, b)| {
                 match (carry, *b) {
                     (true, 0xff) => carry = true,
@@ -177,19 +109,6 @@ impl BitArith for [u8] {
             })
     }
 
-    fn bit_le_sub(&mut self, other: &Self::Other) -> bool {
-        self.iter_mut()
-            .zip(other.iter().chain(std::iter::repeat(&0)))
-            .fold(false, |mut borrow, (a, b)| {
-                match (borrow, *b) {
-                    (true, 0xff) => borrow = true,
-                    (true, _) => (*a, borrow) = a.overflowing_sub(b + 1),
-                    (false, _) => (*a, borrow) = a.overflowing_sub(*b),
-                };
-                borrow
-            })
-    }
-
     fn bit_be_mul(&mut self, other: &Self) -> bool {
         let mut result = vec![0; self.len()];
         let mut overflow = false;
@@ -198,23 +117,6 @@ impl BitArith for [u8] {
                 let mut multiple = self.to_vec();
                 overflow |= multiple.bit_shl(i);
                 overflow |= result.bit_be_add(&multiple);
-            }
-        }
-        self.copy_from_slice(&result);
-        overflow
-    }
-
-    fn bit_le_mul(&mut self, other: &Self::Other) -> bool {
-        let mut other = other.to_vec();
-        other.reverse();
-
-        let mut result = vec![0; self.len()];
-        let mut overflow = false;
-        for (i, bit) in other.bit_iter().rev().enumerate() {
-            if bit {
-                let mut multiple = self.to_vec();
-                overflow |= multiple.bit_shl(i);
-                overflow |= result.bit_le_add(&multiple);
             }
         }
         self.copy_from_slice(&result);
@@ -236,7 +138,7 @@ impl BitArith for [u8] {
         let n = self.len();
         let mut result = vec![0; n];
         for i in (0..=bits_a - bits_b).rev() {
-            let mut tmp = other.extend_be_n(n);
+            let mut tmp = other.extend_be(n);
             tmp.bit_shl(i);
             if self.bit_be_cmp(&tmp) != std::cmp::Ordering::Less {
                 self.bit_be_sub(&tmp);
@@ -244,18 +146,6 @@ impl BitArith for [u8] {
             }
         }
         self.copy_from_slice(&result);
-        false
-    }
-
-    fn bit_le_div(&mut self, other: &Self::Other) -> bool {
-        if other.iter().all(|&b| b == 0) {
-            return true; // Division by zero, return overflow
-        }
-        self.reverse();
-        let mut other = other.to_vec();
-        other.reverse();
-        self.bit_be_div(other.as_slice());
-        self.reverse();
         false
     }
 
@@ -274,7 +164,7 @@ impl BitArith for [u8] {
         let n = self.len();
         let mut result = vec![0; n];
         for i in (0..=bits_a - bits_b).rev() {
-            let mut tmp = other.extend_be_n(n);
+            let mut tmp = other.extend_be(n);
             tmp.bit_shl(i);
             if self.bit_be_cmp(&tmp) != std::cmp::Ordering::Less {
                 self.bit_be_sub(&tmp);
@@ -283,40 +173,22 @@ impl BitArith for [u8] {
         }
         false
     }
-
-    fn bit_le_rem(&mut self, other: &Self::Other) -> bool {
-        if other.iter().all(|&b| b == 0) {
-            return true; // Division by zero, return overflow
-        }
-        self.reverse();
-        let mut other = other.to_vec();
-        other.reverse();
-        self.bit_be_rem(other.as_slice());
-        self.reverse();
-        false
-    }
 }
 
-trait ByteIter {
-    fn iter_be_n(&self, n: usize) -> impl DoubleEndedIterator<Item = &u8>;
-    fn iter_le_n(&self, n: usize) -> impl DoubleEndedIterator<Item = &u8>;
+trait ByteExtend {
+    fn extend_be_iter(&self, n: usize) -> impl DoubleEndedIterator<Item = &u8>;
 
-    fn extend_be_n(&self, n: usize) -> Vec<u8>;
+    fn extend_be(&self, n: usize) -> Vec<u8>;
 }
 
-impl ByteIter for [u8] {
+impl ByteExtend for [u8] {
     #[inline(always)]
-    fn iter_be_n(&self, n: usize) -> impl DoubleEndedIterator<Item = &u8> {
+    fn extend_be_iter(&self, n: usize) -> impl DoubleEndedIterator<Item = &u8> {
         std::iter::repeat_n(&0, n - self.len()).chain(self.iter())
     }
 
     #[inline(always)]
-    fn iter_le_n(&self, n: usize) -> impl DoubleEndedIterator<Item = &u8> {
-        self.iter().chain(std::iter::repeat_n(&0, n - self.len()))
-    }
-
-    #[inline(always)]
-    fn extend_be_n(&self, n: usize) -> Vec<u8> {
+    fn extend_be(&self, n: usize) -> Vec<u8> {
         let mut data = vec![0; n];
         if self.len() < n {
             data[n - self.len()..].copy_from_slice(self);
@@ -390,35 +262,5 @@ mod test_arith {
             assert_eq!(a.bit_be_div(b), false);
             assert_eq!(&a, c);
         }
-    }
-
-    #[test]
-    fn test_bit_cmp() {
-        // assert_eq!(
-        //     [0b0000_0000, 0b0000_0000].bit_be_cmp(&[0b1111_1111]),
-        //     std::cmp::Ordering::Less
-        // );
-
-        const A: [u8; 2] = [0b0011_0011, 0b0011_0011];
-        const B: [u8; 2] = [0b1111_1111, 0b0000_0000];
-        const C: [u8; 2] = [0b0000_0000, 0b1111_1111];
-
-        let (a, b, c) = (
-            u16::from_le_bytes(A),
-            u16::from_le_bytes(B),
-            u16::from_le_bytes(C),
-        );
-        // println!("a: {a:016b} = {a}, b: {b:016b} = {b}, c: {c:016b} = {c}");
-        assert_eq!(a.cmp(&b), A.as_ref().bit_le_cmp(&B));
-        assert_eq!(a.cmp(&c), A.as_ref().bit_le_cmp(&C));
-
-        let (a, b, c) = (
-            u16::from_be_bytes(A),
-            u16::from_be_bytes(B),
-            u16::from_be_bytes(C),
-        );
-        // println!("a: {a:016b} = {a}, b: {b:016b} = {b}, c: {c:016b} = {c}");
-        assert_eq!(a.cmp(&b), A.as_ref().bit_be_cmp(&B));
-        assert_eq!(a.cmp(&c), A.as_ref().bit_be_cmp(&C));
     }
 }
