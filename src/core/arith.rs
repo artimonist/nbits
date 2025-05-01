@@ -128,23 +128,35 @@ impl BitArith for [u8] {
             return true; // Division by zero, return overflow
         }
 
-        let bits_a = self.len() * 8 - self.bit_leading_zeros(); // effective bits
-        let bits_b = other.len() * 8 - other.bit_leading_zeros(); // effective bits
+        // Ignore leading zeros
+        let bits_a = self.len() * 8 - self.bit_leading_zeros(); // effective bits length
+        let bits_b = other.len() * 8 - other.bit_leading_zeros(); // effective bits length
         if bits_a < bits_b {
             self.fill(0);
             return false;
         }
 
+        let mut other = other.extend_be(self.len()); // extend to the same length
+        {
+            // Remove common trailing zeros
+            let common_divisor_bits = self.bit_trailing_zeros().min(other.bit_trailing_zeros());
+            self.bit_shr(common_divisor_bits);
+            other.bit_shr(common_divisor_bits);
+        }
+
+        // Perform division
         let n = self.len();
         let mut result = vec![0; n];
-        for i in (0..=bits_a - bits_b).rev() {
-            let mut tmp = other.extend_be(n);
-            tmp.bit_shl(i);
-            if self.bit_be_cmp(&tmp) != std::cmp::Ordering::Less {
-                self.bit_be_sub(&tmp);
+        let diff = bits_a - bits_b;
+        other.bit_shl(diff);
+        for i in (0..=diff).rev() {
+            if self.bit_be_cmp(&other) != std::cmp::Ordering::Less {
+                self.bit_be_sub(&other);
                 result[n - 1 - i / 8] |= 1 << (i % 8);
             }
+            other.bit_shr(1);
         }
+
         self.copy_from_slice(&result);
         false
     }
@@ -154,22 +166,32 @@ impl BitArith for [u8] {
             return true; // Division by zero, return overflow
         }
 
-        let bits_a = self.len() * 8 - self.bit_leading_zeros(); // effective bits
-        let bits_b = other.len() * 8 - other.bit_leading_zeros(); // effective bits
+        // Ignore leading zeros
+        let bits_a = self.len() * 8 - self.bit_leading_zeros(); // effective bits length
+        let bits_b = other.len() * 8 - other.bit_leading_zeros(); // effective bits length
         if bits_a < bits_b {
-            self.fill(0);
             return false;
         }
 
+        let mut other = other.extend_be(self.len()); // extend to the same length
+        {
+            // Remove common trailing zeros
+            let common_divisor_bits = self.bit_trailing_zeros().min(other.bit_trailing_zeros());
+            self.bit_shr(common_divisor_bits);
+            other.bit_shr(common_divisor_bits);
+        }
+
+        // Perform division
         let n = self.len();
         let mut result = vec![0; n];
-        for i in (0..=bits_a - bits_b).rev() {
-            let mut tmp = other.extend_be(n);
-            tmp.bit_shl(i);
-            if self.bit_be_cmp(&tmp) != std::cmp::Ordering::Less {
-                self.bit_be_sub(&tmp);
+        let diff = bits_a - bits_b;
+        other.bit_shl(diff);
+        for i in (0..=diff).rev() {
+            if self.bit_be_cmp(&other) != std::cmp::Ordering::Less {
+                self.bit_be_sub(&other);
                 result[n - 1 - i / 8] |= 1 << (i % 8);
             }
+            other.bit_shr(1);
         }
         false
     }
