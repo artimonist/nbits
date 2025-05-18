@@ -78,11 +78,11 @@ fn test_doc() {
     );
 
     assert_eq!(
-        Vec::from_bits_n([0b11_1111_u8, 0b11_1111, 0b11_1111].into_iter(), 6),
+        Vec::from_bits_chunk([0b11_1111_u8, 0b11_1111, 0b11_1111].into_iter(), 6),
         vec![0b1111_1111, 0b1111_1111, 0b1100_0000]
     );
     assert_eq!(
-        Vec::from_bits_n([0b1111_u16, 0b1111, 0b1111].into_iter(), 6),
+        Vec::from_bits_chunk([0b1111_u16, 0b1111, 0b1111].into_iter(), 6),
         vec![0b001111_00, 0b1111_0011, 0b1100_0000]
     );
 

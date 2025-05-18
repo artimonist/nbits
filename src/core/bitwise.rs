@@ -284,4 +284,11 @@ mod test_offset {
         assert_eq!(data, [0b0000_1111, 0b1111_0000]);
         assert_eq!([0b1].bit_shr(1), true);
     }
+
+    #[test]
+    fn test_bit_reverse() {
+        let mut data: [u8; 2] = [0b1111_1100, 0b1100_0000];
+        data.bit_reverse();
+        assert_eq!(data, [0b0000_0011, 0b0011_1111])
+    }
 }

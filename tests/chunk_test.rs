@@ -98,7 +98,7 @@ fn test_chunks_overflow() {
 #[test]
 #[should_panic]
 fn test_conjoin_overflow() {
-    let _ = Vec::from_bits_n([222_u32].into_iter(), 0);
+    let _ = Vec::from_bits_chunk([222_u32].into_iter(), 0);
 }
 
 #[test]
@@ -116,20 +116,23 @@ fn test_chunks_debug() {
 #[test]
 fn test_conjoin_debug() {
     assert_eq!(
-        Vec::from_bits_n([0b1111, 0b1111].into_iter(), 4),
+        Vec::from_bits_chunk([0b1111, 0b1111].into_iter(), 4),
         vec![0b1111_1111]
     );
     assert_eq!(
-        Vec::from_bits_n([0xFF, 0xFF].into_iter(), 10),
+        Vec::from_bits_chunk([0xFF, 0xFF].into_iter(), 10),
         vec![0b0011_1111, 0b1100_1111, 0b1111_0000]
     );
-    assert_eq!(Vec::from_bits_n([1; 8].into_iter(), 1), vec![0b1111_1111]);
     assert_eq!(
-        Vec::from_bits_n([1; 8].into_iter(), 2),
+        Vec::from_bits_chunk([1; 8].into_iter(), 1),
+        vec![0b1111_1111]
+    );
+    assert_eq!(
+        Vec::from_bits_chunk([1; 8].into_iter(), 2),
         vec![0b0101_0101, 0b0101_0101]
     );
     assert_eq!(
-        Vec::from_bits_n([1; 16].into_iter(), 1),
+        Vec::from_bits_chunk([1; 16].into_iter(), 1),
         vec![0b1111_1111, 0b1111_1111]
     );
 }

@@ -19,9 +19,16 @@ impl XBits for [u8] {
     }
 }
 
+/// A reference to a byte array that allows for bit-level operations.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct BitsRef<'a>(&'a [u8]);
 
 impl BitsRef<'_> {
+    #[inline(always)]
+    pub fn as_bytes(&self) -> &[u8] {
+        self.0
+    }
+
     #[inline(always)]
     pub fn all_one(&self) -> bool {
         self.0.bit_all_one()
@@ -48,7 +55,7 @@ impl BitsRef<'_> {
     }
 
     #[inline(always)]
-    pub fn trunks<T>(&self, n: usize) -> impl std::iter::Iterator<Item = T> + '_
+    pub fn chunks<T>(&self, n: usize) -> impl std::iter::Iterator<Item = T> + '_
     where
         T: TryFrom<u64> + Default + 'static,
     {
@@ -56,21 +63,14 @@ impl BitsRef<'_> {
     }
 }
 
+/// A mutable reference to a byte array that allows for bit-level operations.
+#[derive(Debug, PartialEq, Eq)]
 pub struct BitsMut<'a>(&'a mut [u8]);
 
 impl BitsMut<'_> {
-    pub fn as_ref(&self) -> BitsRef {
+    #[inline(always)]
+    pub fn to_ref(&self) -> BitsRef {
         BitsRef(self.0)
-    }
-
-    #[inline(always)]
-    pub fn shl_overflow(&mut self, n: usize) -> bool {
-        self.0.bit_shl(n)
-    }
-
-    #[inline(always)]
-    pub fn shr_overflow(&mut self, n: usize) -> bool {
-        self.0.bit_shr(n)
     }
 
     #[inline(always)]
@@ -143,5 +143,9 @@ mod tests {
         let mut bits = [0b00000001_u8, 0b00000010, 0b00000100];
         let _xbits = bits.bits();
         let _xbits = bits[0..2].bits_mut().or(1024_u16.to_be_bytes().bits());
+
+        let mut vs = [0b1111_1111, 0b1100_0000];
+        vs.bits_mut().reverse();
+        assert_eq!(vs, [0b0000_0011, 0b1111_1111]);
     }
 }
