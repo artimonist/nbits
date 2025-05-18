@@ -1,7 +1,7 @@
 use crate::assert_overflow;
 
 /**
- * Bits iterator on [u8]
+ * Bits iterator implementation on `[u8]`
  */
 pub trait BitIterator {
     /// Iterator bits

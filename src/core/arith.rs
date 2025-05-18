@@ -2,7 +2,7 @@ use super::BitIterator;
 use super::Bitwise;
 
 /**
- * Arithmetic operations for [u8]
+ * Arithmetic operations implementation for `[u8]`
  */
 pub trait BitArith {
     type Other: ?Sized;

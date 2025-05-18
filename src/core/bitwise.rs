@@ -1,5 +1,5 @@
 /**
- * Bitwise operations for [u8]
+ * Bitwise operations implementation for `[u8]`
  */
 pub trait Bitwise {
     /// Bitwise operator `<<`

@@ -1,8 +1,8 @@
-//! Bit operations on [u8]
+//! Bit operations on `[u8]`
 //!
 //! # Usage
-//!   [u16] chunks to mnemonic indices by 11 bits.  
-//!   [u8] chunks to base64 indices by 6 bits.  
+//!   `[u16]` chunks to mnemonic indices by 11 bits.  
+//!   `[u8]` chunks to base64 indices by 6 bits.  
 //!
 //! # Examples
 //! ```
@@ -53,7 +53,7 @@ mod xbits;
 
 pub use core::{BitArith, BitIterator, Bitwise, FromBits};
 pub use nbits::NBits;
-pub use xbits::XBits;
+pub use xbits::{BitsMut, BitsRef, XBits};
 
 /// Assert overflow of parameter
 /// # Parameters
