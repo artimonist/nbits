@@ -110,7 +110,7 @@ pub trait FromBits {
 }
 
 impl FromBits for Vec<u8> {
-    fn from_bits<U>(bits: U) -> Vec<u8>
+    fn from_bits<U>(bits: U) -> Self
     where
         U: Iterator<Item = bool>,
     {
@@ -130,7 +130,7 @@ impl FromBits for Vec<u8> {
             .collect()
     }
 
-    fn from_bits_chunk<T, U>(chunks: U, n: usize) -> Vec<u8>
+    fn from_bits_chunk<T, U>(chunks: U, n: usize) -> Self
     where
         T: TryInto<u64>,
         U: Iterator<Item = T>,

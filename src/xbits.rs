@@ -104,19 +104,19 @@ impl BitsMut<'_> {
     }
 
     #[inline(always)]
-    pub fn bit_or<U: Into<u64>>(&mut self, other: U) -> &mut Self {
+    pub fn be_or<U: Into<u64>>(&mut self, other: U) -> &mut Self {
         self.0.bit_be_or(&other.into().to_be_bytes());
         self
     }
 
     #[inline(always)]
-    pub fn bit_and<U: Into<u64>>(&mut self, other: U) -> &mut Self {
+    pub fn be_and<U: Into<u64>>(&mut self, other: U) -> &mut Self {
         self.0.bit_be_and(&other.into().to_be_bytes());
         self
     }
 
     #[inline(always)]
-    pub fn bit_xor<U: Into<u64>>(&mut self, other: U) -> &mut Self {
+    pub fn be_xor<U: Into<u64>>(&mut self, other: U) -> &mut Self {
         self.0.bit_be_xor(&other.into().to_be_bytes());
         self
     }
@@ -131,6 +131,26 @@ impl BitsMut<'_> {
     pub fn reverse(&mut self) -> &mut Self {
         self.0.bit_reverse();
         self
+    }
+}
+
+impl std::fmt::Display for BitsRef<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut s = String::new();
+        for byte in self.0.iter() {
+            s.push_str(&format!("{:08b} ", byte));
+        }
+        write!(f, "{}", s.trim())
+    }
+}
+
+impl std::fmt::Display for BitsMut<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut s = String::new();
+        for byte in self.0.iter() {
+            s.push_str(&format!("{:08b} ", byte));
+        }
+        write!(f, "{}", s.trim())
     }
 }
 
