@@ -6,7 +6,8 @@
 
 ### Examples  
 ```
-use nbits::{XBits, FromBits};
+use nbits::XBits;
+use nbits::core::FromBits;
 
 assert_eq!(vec![0b1111_1111, 0b1100_0000].bits().all_one(), false);
 assert_eq!(vec![0b1111_1111, 0b1100_0000].bits().trailing_zeros(), 6);

@@ -11,7 +11,7 @@ pub trait Bitwise {
     /// - `true` if the leftmost `1` bits are overflowed
     /// # Examples
     /// ```
-    /// # use nbits::Bitwise;
+    /// # use nbits::core::Bitwise;
     /// let mut data: [u8; 2] = [0b1111_1111, 0b0000_0000];
     /// assert_eq!(data.bit_shl(4), true);
     /// assert_eq!(data, [0b1111_0000, 0b0000_0000]);
@@ -27,7 +27,7 @@ pub trait Bitwise {
     /// - `true` if the rightmost `1` bits are overflowed
     /// # Examples
     /// ```
-    /// # use nbits::Bitwise;
+    /// # use nbits::core::Bitwise;
     /// let mut data = [0b1111_1111, 0b0000_0000];
     /// assert_eq!(data.bit_shr(4), false);
     /// assert_eq!(data, [0b0000_1111, 0b1111_0000]);
@@ -40,7 +40,7 @@ pub trait Bitwise {
     /// Reverse the bits of the data
     /// # Examples
     /// ```
-    /// # use nbits::Bitwise;
+    /// # use nbits::core::Bitwise;
     /// assert_eq!([0b0000_1111, 0b0000_0011].bit_reverse(), [0b1100_0000, 0b1111_0000]);
     /// ```
     fn bit_reverse(&mut self) -> &mut Self;
@@ -48,7 +48,7 @@ pub trait Bitwise {
     /// Bitwise operator `!`
     /// # Examples
     /// ```
-    /// # use nbits::Bitwise;
+    /// # use nbits::core::Bitwise;
     /// assert_eq!([0b0000_1111, 0b0000_0011].bit_not(), [0b1111_0000, 0b1111_1100]);
     /// ```
     fn bit_not(&mut self) -> &mut Self;
@@ -56,7 +56,7 @@ pub trait Bitwise {
     /// Bitwise operator `&` for big-endian
     /// # Examples
     /// ```
-    /// # use nbits::Bitwise;
+    /// # use nbits::core::Bitwise;
     /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_and(&[0b1111_1111]), [0b0000_0000, 0b0011_0011]);
     /// ```
     fn bit_be_and(&mut self, other: &Self) -> &mut Self;
@@ -64,7 +64,7 @@ pub trait Bitwise {
     /// Bitwise operator `|` for big-endian
     /// # Examples
     /// ```
-    /// # use nbits::Bitwise;
+    /// # use nbits::core::Bitwise;
     /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_or(&[0b1111_1111]), [0b0011_0011, 0b1111_1111]);
     /// ```
     fn bit_be_or(&mut self, other: &Self) -> &mut Self;
@@ -72,7 +72,7 @@ pub trait Bitwise {
     /// Bitwise operator `^` for big-endian
     /// # Examples
     /// ```
-    /// # use nbits::Bitwise;
+    /// # use nbits::core::Bitwise;
     /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_xor(&[0b1111_1111]), [0b0011_0011, 0b1100_1100]);
     /// ```
     fn bit_be_xor(&mut self, other: &Self) -> &mut Self;
@@ -80,7 +80,7 @@ pub trait Bitwise {
     /// Bitwise operator `&` for little-endian
     /// # Examples
     /// ```
-    /// # use nbits::Bitwise;
+    /// # use nbits::core::Bitwise;
     /// assert_eq!([0b0011_0011, 0b0011_0011].bit_le_and(&[0b1111_1111]), [0b0011_0011, 0b0000_0000]);
     /// ```
     fn bit_le_and(&mut self, other: &Self) -> &mut Self;
@@ -88,7 +88,7 @@ pub trait Bitwise {
     /// Bitwise operator `|` for little-endian
     /// # Examples
     /// ```
-    /// # use nbits::Bitwise;
+    /// # use nbits::core::Bitwise;
     /// assert_eq!([0b0011_0011, 0b0011_0011].bit_le_or(&[0b1111_1111]), [0b1111_1111, 0b0011_0011]);
     /// ```
     fn bit_le_or(&mut self, other: &Self) -> &mut Self;
@@ -96,7 +96,7 @@ pub trait Bitwise {
     /// Bitwise operator `^` for little-endian
     /// # Examples
     /// ```
-    /// # use nbits::Bitwise;
+    /// # use nbits::core::Bitwise;
     /// assert_eq!([0b0011_0011, 0b0011_0011].bit_le_xor(&[0b1111_1111]), [0b1100_1100, 0b0011_0011]);
     /// ```
     fn bit_le_xor(&mut self, other: &Self) -> &mut Self;
@@ -110,7 +110,7 @@ pub trait Bitwise {
     /// Count the number of trailing zeros
     /// # Examples
     /// ```
-    /// # use nbits::Bitwise;
+    /// # use nbits::core::Bitwise;
     /// assert_eq!([0b0001_0000, 0b1000_0011].bit_leading_zeros(), 3);
     /// assert_eq!([0b0000_0000, 0b1000_0011].bit_leading_zeros(), 8);
     /// assert_eq!([0b0000_0000, 0b0001_0011].bit_leading_zeros(), 11);
@@ -121,7 +121,7 @@ pub trait Bitwise {
     /// Count the number of leading zeros
     /// # Examples
     /// ```
-    /// # use nbits::Bitwise;
+    /// # use nbits::core::Bitwise;
     /// assert_eq!([0b0000_1111, 0b0000_1000].bit_trailing_zeros(), 3);
     /// assert_eq!([0b0000_1111, 0b0000_0000].bit_trailing_zeros(), 8);
     /// assert_eq!([0b1111_1000, 0b0000_0000].bit_trailing_zeros(), 11);

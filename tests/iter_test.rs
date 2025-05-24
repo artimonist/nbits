@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use nbits::{BitIterator, FromBits};
+use nbits::core::{BitIterator, FromBits};
 
 #[test]
 fn test_bit_iter() {

@@ -10,7 +10,7 @@ pub trait BitArith {
     /// Comparison for big-endian
     /// # Examples
     /// ```
-    /// # use nbits::BitArith;
+    /// # use nbits::core::BitArith;
     /// # use std::cmp::Ordering;
     /// assert_eq!([0b0011_0011, 0b0011_0011].bit_be_cmp(&[0b1111_1111]), Ordering::Greater);
     /// assert_eq!([0b0000_0000, 0b0011_0011].bit_be_cmp(&[0b1111_1111]), Ordering::Less);
@@ -22,7 +22,7 @@ pub trait BitArith {
     /// Bit arithmetic operator `+=` for big-endian
     /// # Example
     /// ```
-    /// # use nbits::BitArith;
+    /// # use nbits::core::BitArith;
     /// let (mut a, b) = ([0b1100_1100, 0b1000_0001], [0b1000_0001]);
     /// assert_eq!(a.as_mut().bit_be_add(&b), false);
     /// assert_eq!(a, [0b1100_1101, 0b0000_0010]);
@@ -32,7 +32,7 @@ pub trait BitArith {
     /// Bit arithmetic operator `-=` for big-endian
     /// # Example
     /// ```
-    /// # use nbits::BitArith;
+    /// # use nbits::core::BitArith;
     /// let (mut a, b) = ([0b1100_1100, 0b1000_0001], [0b1000_0001]);
     /// assert_eq!(a.as_mut().bit_be_sub(&b), false);
     /// assert_eq!(a, [0b1100_1100, 0b0000_0000]);
@@ -42,7 +42,7 @@ pub trait BitArith {
     /// Bit arithmetic operator `*=` for big-endian
     /// # Example
     /// ```
-    /// # use nbits::BitArith;
+    /// # use nbits::core::BitArith;
     /// let (mut a, b) = ([0b0011_0000, 0b1000_0001], [0b0000_0010]);
     /// assert_eq!(a.as_mut().bit_be_mul(&b), false);
     /// assert_eq!(a, [0b0110_0001, 0b0000_0010]);
@@ -52,7 +52,7 @@ pub trait BitArith {
     /// Bit arithmetic operator `/=` for big-endian
     /// # Example
     /// ```
-    /// # use nbits::BitArith;
+    /// # use nbits::core::BitArith;
     /// let (a, b) = ([0b1100_0011, 0b0000_0001], [0b1000_0001]);
     /// let mut x = a.clone();
     /// x.as_mut().bit_be_div(&b);
@@ -63,7 +63,7 @@ pub trait BitArith {
     /// Bit arithmetic operator `%=` for big-endian
     /// # Example
     /// ```
-    /// # use nbits::BitArith;
+    /// # use nbits::core::BitArith;
     /// let (a, b) = ([0b1100_0011, 0b0000_0001], [0b0000_0001, 0b1000_0001]);
     /// let mut x = a.clone();
     /// x.as_mut().bit_be_rem(&b);

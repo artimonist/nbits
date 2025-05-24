@@ -7,7 +7,7 @@ pub trait BitIterator {
     /// Iterator bits
     /// # Examples
     /// ```
-    /// # use nbits::BitIterator;
+    /// # use nbits::core::BitIterator;
     /// assert_eq!(
     ///   [0b1111_0000_u8].bit_iter().collect::<Vec<bool>>(),
     ///   vec![true, true, true, true, false, false, false, false]
@@ -24,7 +24,7 @@ pub trait BitIterator {
     ///   
     /// # Examples  
     /// ```
-    /// # use nbits::BitIterator;
+    /// # use nbits::core::BitIterator;
     /// assert_eq!(
     ///     vec![0b1111_1111, 0b1111_1111].bit_chunks(6).collect::<Vec<u8>>(),
     ///     vec![0b11_1111, 0b11_1111, 0b11_1100]
@@ -75,7 +75,7 @@ pub trait FromBits {
     /// Convert enumerated bool values to buffer
     /// # Examples
     /// ```
-    /// # use nbits::FromBits;
+    /// # use nbits::core::FromBits;
     /// let bits = vec![false, false, false, false, true, true, true, true, false];
     /// let data = Vec::from_bits(bits.into_iter());
     /// assert_eq!(data, [0b0000_1111, 0b0000_0000]);
@@ -93,7 +93,7 @@ pub trait FromBits {
     ///
     /// # Examples
     /// ```
-    /// # use nbits::FromBits;
+    /// # use nbits::core::FromBits;
     /// assert_eq!(
     ///     Vec::from_bits_chunk([0b11_1111_u8, 0b11_1111, 0b11_1111].into_iter(),6),
     ///     vec![0b1111_1111, 0b1111_1111, 0b1100_0000]
