@@ -318,3 +318,32 @@ impl<const N: usize, U: Into<u64>> std::ops::RemAssign<U> for NBits<N> {
         assert!(!overflow, "[nbits] Overflow in `rem_assign`");
     }
 }
+
+impl<const N: usize> NBits<N> {
+    #[inline(always)]
+    pub fn bit(&self, index: usize) -> bool {
+        assert!(index < N * 8, "[nbits] Index out of bounds");
+        let byte_index = index / 8;
+        let bit_index = index % 8;
+        ((self.0[byte_index] >> (7 - bit_index)) & 1) == 1
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_nbits() {
+        let mut nbits = NBits::<4>::new();
+        nbits.0[0] = 0b10101010;
+        assert_eq!(nbits.bit(0), true);
+        assert_eq!(nbits.bit(1), false);
+        assert_eq!(nbits.bit(2), true);
+        assert_eq!(nbits.bit(3), false);
+        assert_eq!(nbits.bit(4), true);
+        assert_eq!(nbits.bit(5), false);
+        assert_eq!(nbits.bit(6), true);
+        assert_eq!(nbits.bit(7), false);
+    }
+}

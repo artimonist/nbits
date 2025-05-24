@@ -154,15 +154,38 @@ impl std::fmt::Display for BitsMut<'_> {
     }
 }
 
+impl std::ops::Index<usize> for BitsRef<'_> {
+    type Output = bool;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        if index >= self.0.len() * 8 {
+            panic!("Index out of bounds");
+        }
+        let byte_index = index / 8;
+        let bit_index = index % 8;
+        let byte = self.0[byte_index];
+        let bit = (byte >> (7 - bit_index)) & 1;
+        if bit == 1 {
+            &true
+        } else {
+            &false
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::XBits;
 
     #[test]
     fn test_bits() {
-        let mut bits = [0b00000001_u8, 0b00000010, 0b00000100];
-        let _xbits = bits.bits();
-        let _xbits = bits[0..2].bits_mut().or(1024_u16.to_be_bytes().bits());
+        let mut buf = [0b00000001_u8, 0b00000010, 0b00000100];
+        let _xbits = buf.bits();
+        let _xbits = buf[0..2].bits_mut().or(1024_u16.to_be_bytes().bits());
+
+        for i in 0..buf.len() {
+            assert_eq!(buf.bits()[i], buf.bits().iter().nth(i).unwrap());
+        }
 
         let mut vs = [0b1111_1111, 0b1100_0000];
         vs.bits_mut().reverse();
