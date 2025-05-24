@@ -1,4 +1,5 @@
 use super::core::{BitArith, Bitwise};
+use crate::{BitsMut, BitsRef, XBits};
 
 /**
  *  `NBits` is a wrapper around an array of bytes that provides
@@ -326,6 +327,16 @@ impl<const N: usize> NBits<N> {
         let byte_index = index / 8;
         let bit_index = index % 8;
         ((self.0[byte_index] >> (7 - bit_index)) & 1) == 1
+    }
+}
+
+impl<const N: usize> XBits for NBits<N> {
+    fn bits(&self) -> BitsRef {
+        BitsRef(&self.0)
+    }
+
+    fn bits_mut(&mut self) -> BitsMut {
+        BitsMut(&mut self.0)
     }
 }
 

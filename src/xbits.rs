@@ -21,7 +21,7 @@ impl XBits for [u8] {
 
 /// A reference to a byte array that allows for bit-level operations.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct BitsRef<'a>(&'a [u8]);
+pub struct BitsRef<'a>(pub &'a [u8]);
 
 impl BitsRef<'_> {
     #[inline(always)]
@@ -65,7 +65,7 @@ impl BitsRef<'_> {
 
 /// A mutable reference to a byte array that allows for bit-level operations.
 #[derive(Debug, PartialEq, Eq)]
-pub struct BitsMut<'a>(&'a mut [u8]);
+pub struct BitsMut<'a>(pub &'a mut [u8]);
 
 impl BitsMut<'_> {
     #[inline(always)]
