@@ -75,7 +75,7 @@ pub trait FromBits {
     /// Convert enumerated bool values to buffer
     /// # Examples
     /// ```
-    /// # use nbits::core::FromBits;
+    /// # use nbits::FromBits;
     /// let bits = vec![false, false, false, false, true, true, true, true, false];
     /// let data = Vec::from_bits(bits.into_iter());
     /// assert_eq!(data, [0b0000_1111, 0b0000_0000]);
@@ -93,7 +93,7 @@ pub trait FromBits {
     ///
     /// # Examples
     /// ```
-    /// # use nbits::core::FromBits;
+    /// # use nbits::FromBits;
     /// assert_eq!(
     ///     Vec::from_bits_chunk([0b11_1111_u8, 0b11_1111, 0b11_1111].into_iter(),6),
     ///     vec![0b1111_1111, 0b1111_1111, 0b1100_0000]
